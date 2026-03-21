@@ -1,13 +1,5 @@
-
-
 import os
 from dataclasses import dataclass
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from peft import PeftModel
-import re
-from urllib.parse import unquote
-import random
 
 @dataclass
 class PayloadResult:
@@ -41,7 +33,11 @@ class Gemma2B(_WafAttackModel):
     def load_model(self):
         if self.loaded:
             return
-        print("Lazy loading Gemma-2-2B model...")
+        print("Loading Gemma-2-2B model...")
+        
+        import torch
+        from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+        from peft import PeftModel
 
         self.no_grad = torch.no_grad
         if torch.cuda.is_available():
@@ -116,7 +112,12 @@ class Qwen25_3B(_WafAttackModel):
     def load_model(self):
         if self.loaded:
             return
-        print("Lazy loading Qwen2.5-3B-Instruct model...")
+        print("Loading Qwen2.5-3B-Instruct model...")
+        
+        import torch
+        from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+        from peft import PeftModel
+
 
         self.no_grad = torch.no_grad
         if torch.cuda.is_available():

@@ -19,6 +19,8 @@ MODELS = {
     }
 }
 
+HF_TOKEN = None
+
 @dataclass
 class PromptRequest:
     id: str
@@ -29,12 +31,15 @@ class PromptRequest:
     temperature: float = 0.7
     answer: str = None
 
-def load_model(hf_token):
-    return
+def load_model():
+    global HF_TOKEN
+    if HF_TOKEN == "test":
+        print("Test mode: skipping model loading.")
+        return
     print("Loading models...")
     global MODELS
-    MODELS["GEMMA_2B"]["model"] = Gemma2B(hf_token, True)
-    # MODELS["QWEN25_3B"]["model"] = Qwen25_3B(hf_token)
+    MODELS["GEMMA_2B"]["model"] = Gemma2B(HF_TOKEN, True)
+    # MODELS["QWEN25_3B"]["model"] = Qwen25_3B(HF_TOKEN)
     print("Models loaded.")
 
 def fetchPromptQueue():
@@ -56,7 +61,8 @@ def fetchPromptQueue():
         return None
 
 def generate_response(prompt_request: PromptRequest) -> str:
-    return "This is a placeholder response. The model is not loaded in this demo."
+    if HF_TOKEN == "test":
+        return "This is a test response. No model was loaded."
     model_name = prompt_request.model_name
     adapter_name = prompt_request.adapter_name
     prompt = prompt_request.prompt
@@ -100,20 +106,19 @@ def updateAnswer(id, answer):
 
 
 if __name__ == "__main__":
-    hf_token = None
     if len(sys.argv) >= 2:
-        hf_token = sys.argv[1]
+        HF_TOKEN = sys.argv[1]
         with open("hf_token.txt", "w") as f:
-            f.write(hf_token)
+            f.write(HF_TOKEN)
     else:
         with open("hf_token.txt", "r") as f:
-            hf_token = f.read().strip()
+            HF_TOKEN = f.read().strip()
     
-    if not hf_token:
+    if not HF_TOKEN:
         print("Hugging Face token is required. Please provide it as a command line argument or store it in hf_token.txt")
         exit(1)
     
-    load_model(hf_token)
+    load_model()
     
     while True:
         print("Fetching prompt from queue...")
