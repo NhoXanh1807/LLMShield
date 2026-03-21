@@ -90,6 +90,9 @@ if __name__ == "__main__":
         with open("hf_token.txt", "r") as f:
             hf_token = f.read().strip()
     
+    if not hf_token:
+        print("Hugging Face token is required. Please provide it as a command line argument or store it in hf_token.txt")
+        exit(1)
     
     load_model(hf_token)
     
