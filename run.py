@@ -1,3 +1,5 @@
+print("importing libraries...")
+
 import requests
 from dataclasses import dataclass
 from llm4waf import Gemma2B, Qwen25_3B, _WafAttackModel
