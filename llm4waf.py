@@ -227,7 +227,7 @@ class Gemma2B(_WafAttackModel):
             pretrained_model_name_or_path=self.base_model,
             device_map=device_map,
             token=self.hf_token,
-            local_files_only=True
+            local_files_only=False
         )
         if bnb_config is not None:
             model_kwargs["quantization_config"] = bnb_config
@@ -235,7 +235,7 @@ class Gemma2B(_WafAttackModel):
         self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
         self.model = PeftModel.from_pretrained(self.model, self.phase3_adapter_path, adapter_name="phase3_rl")
         self.model.load_adapter(self.phase1_adapter_path, adapter_name="phase1")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.base_model, token=self.hf_token, local_files_only=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.base_model, token=self.hf_token, local_files_only=False)
         self.loaded = True
         print("Gemma-2-2B model loaded successfully (phase1 + phase3_rl adapters).")
 
