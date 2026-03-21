@@ -35,19 +35,23 @@ def load_model(hf_token):
     print("Models loaded.")
 
 def fetchPromptQueue():
-    res = requests.get("http://api.akng.io.vn:89/generation")
-    if (res.status_code == 200 
-        and "data" in res.json() 
-        and res.json()["data"] is not None 
-        and "id" in res.json()["data"] 
-        and "prompt" in res.json()["data"]
-    ):
-        return PromptRequest(
-            id=res.json()["data"]["id"],
-            prompt=res.json()["data"]["prompt"],
-            answer=res.json()["data"]["answer"]
-        )
-    else:
+    try:
+        res = requests.get("http://api.akng.io.vn:89/generation")
+        if (res.status_code == 200 
+            and "data" in res.json() 
+            and res.json()["data"] is not None 
+            and "id" in res.json()["data"] 
+            and "prompt" in res.json()["data"]
+        ):
+            return PromptRequest(
+                id=res.json()["data"]["id"],
+                prompt=res.json()["data"]["prompt"],
+                answer=res.json()["data"]["answer"]
+            )
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching prompt: {e}")
         return None
 
 def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7) -> str:
@@ -70,13 +74,17 @@ def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int
     return response
 
 def updateAnswer(id, answer):
-    res = requests.put("http://api.akng.io.vn:89/generation", json={
-        "id": id,
-        "answer": answer
-    })
-    if res.status_code == 200:
-        return True
-    else:
+    try:
+        res = requests.put("http://api.akng.io.vn:89/generation", json={
+            "id": id,
+            "answer": answer
+        })
+        if res.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error updating answer: {e}")
         return False
 
 
