@@ -51,7 +51,6 @@ def fetchPromptQueue():
         return None
 
 def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7) -> str:
-    return "This is a dummy response. The model is not loaded in this demo code. Please load the model to get real responses."
     if model_name not in MODELS:
         raise ValueError(f"Model {model_name} not found")
     
