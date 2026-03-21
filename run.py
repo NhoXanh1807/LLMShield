@@ -98,10 +98,10 @@ if __name__ == "__main__":
     
     while True:
         print("Fetching prompt from queue...")
-        prompt_request = fetchPromptQueue()
-        if prompt_request is None:
-            time.sleep(1)
-            continue
+        prompt_request = None
+        while prompt_request is None:
+            prompt_request = fetchPromptQueue()
+            time.sleep(3)
         
         print("Received prompt:")
         print("\t" + prompt_request.prompt.replace("\n", "\n\t"))
