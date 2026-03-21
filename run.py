@@ -26,11 +26,29 @@ class PromptRequest:
     answer: str
 
 def load_model(hf_token):
+    return
     global MODELS
     MODELS["GEMMA_2B"]["model"] = Gemma2B(hf_token, True)
     # MODELS["QWEN25_3B"]["model"] = Qwen25_3B(hf_token)
 
-def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7):
+def fetchPromptQueue():
+    res = requests.get("http://api.akng.io.vn:89/generation")
+    if (res.status_code == 200 
+        and "data" in res.json() 
+        and res.json()["data"] is not None 
+        and "id" in res.json()["data"] 
+        and "prompt" in res.json()["data"]
+    ):
+        return PromptRequest(
+            id=res.json()["data"]["id"],
+            prompt=res.json()["data"]["prompt"],
+            answer=res.json()["data"]["answer"]
+        )
+    else:
+        return None
+
+def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7) -> str:
+    return "This is a dummy response. The model is not loaded in this demo code. Please load the model to get real responses."
     if model_name not in MODELS:
         raise ValueError(f"Model {model_name} not found")
     
@@ -48,22 +66,6 @@ def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int
         adapter_name=adapter_name
     )
     return response
-
-def fetchPromptQueue():
-    res = requests.get("http://api.akng.io.vn:89/generation")
-    if (res.status_code == 200 
-        and "data" in res.json() 
-        and res.json()["data"] is not None 
-        and "id" in res.json()["data"] 
-        and "prompt" in res.json()["data"]
-    ):
-        return PromptRequest(
-            id=res.json()["data"]["id"],
-            prompt=res.json()["data"]["prompt"],
-            answer=res.json()["data"]["answer"]
-        )
-    else:
-        return None
 
 def updateAnswer(id, answer):
     res = requests.put("http://api.akng.io.vn:89/generation", json={
