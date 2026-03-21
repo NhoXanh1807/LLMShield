@@ -24,10 +24,13 @@ class PromptRequest:
     id: str
     prompt: str
     model_name: str = "GEMMA_2B"
-    adapter_name: str = None
+    adapter_name: str = "phase1"
+    max_new_tokens: int = 128
+    temperature: float = 0.7
     answer: str = None
 
 def load_model(hf_token):
+    return
     print("Loading models...")
     global MODELS
     MODELS["GEMMA_2B"]["model"] = Gemma2B(hf_token, True)
@@ -43,18 +46,24 @@ def fetchPromptQueue():
             and "id" in res.json()["data"] 
             and "prompt" in res.json()["data"]
         ):
-            return PromptRequest(
-                id=res.json()["data"]["id"],
-                prompt=res.json()["data"]["prompt"],
-                answer=res.json()["data"]["answer"]
-            )
+            return PromptRequest(**res.json()["data"])
         else:
             return None
     except Exception as e:
         print(f"Error fetching prompt: {e}")
+        time.sleep(5)
+        print("Retrying fetch...")
         return None
 
-def generate_response(model_name, adapter_name, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7) -> str:
+def generate_response(prompt_request: PromptRequest) -> str:
+    return "This is a placeholder response. The model is not loaded in this demo."
+    model_name = prompt_request.model_name
+    adapter_name = prompt_request.adapter_name
+    prompt = prompt_request.prompt
+    max_new_tokens = prompt_request.max_new_tokens
+    temperature = prompt_request.temperature
+
+
     if model_name not in MODELS:
         raise ValueError(f"Model {model_name} not found")
     
@@ -85,6 +94,8 @@ def updateAnswer(id, answer):
             return False
     except Exception as e:
         print(f"Error updating answer: {e}")
+        time.sleep(5)
+        print("Retrying update...")
         return False
 
 
@@ -115,7 +126,7 @@ if __name__ == "__main__":
         print("\t" + prompt_request.prompt.replace("\n", "\n\t"))
         
         print("Generating response...")
-        response = generate_response("GEMMA_2B", None, prompt_request.prompt)
+        response = generate_response(prompt_request)
         
         print("Updating answer...")
         updateAnswer(prompt_request.id, response)
