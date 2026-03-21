@@ -2,8 +2,13 @@
 
 import os
 from dataclasses import dataclass
-
 from typing import List
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from peft import PeftModel
+import re
+from urllib.parse import unquote
+import random
 
 @dataclass
 class PayloadResult:
@@ -84,8 +89,6 @@ class _WafAttackModel:
     def _is_valid_payload(self, payload: str, attack_type: str) -> bool:
         """Return True if model output looks like a real attack payload.
         Checks both raw and URL-decoded forms to handle encoded payloads."""
-        import re
-        from urllib.parse import unquote
 
         def _decode_all(s):
             """URL-decode repeatedly until stable, then lower."""
@@ -118,7 +121,6 @@ class _WafAttackModel:
         return True  # for unknown attack types, accept anything
 
     def get_fallback_payload(self, attack_type: str) -> str:
-        import random
         if "xss" in attack_type.lower():
             return random.choice(self._XSS_FALLBACK_PAYLOADS)
         elif "sql" in attack_type.lower():
@@ -155,7 +157,6 @@ class _WafAttackModel:
         ]
         candidates = sqli_techniques if "sql" in attack_type.lower() else xss_techniques
         remaining = [t for t in candidates if t not in tried_techniques]
-        import random
         target_technique = random.choice(remaining) if remaining else random.choice(candidates)
 
         prompt = f"""You are an offensive security assistant specialized in generating WAF-evasion payloads.
@@ -201,9 +202,6 @@ class Gemma2B(_WafAttackModel):
         if self.loaded:
             return
         print("Lazy loading Gemma-2-2B model...")
-        import torch
-        from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-        from peft import PeftModel
 
         self.no_grad = torch.no_grad
         if torch.cuda.is_available():
@@ -269,9 +267,6 @@ class Qwen25_3B(_WafAttackModel):
         if self.loaded:
             return
         print("Lazy loading Qwen2.5-3B-Instruct model...")
-        import torch
-        from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-        from peft import PeftModel
 
         self.no_grad = torch.no_grad
         if torch.cuda.is_available():
