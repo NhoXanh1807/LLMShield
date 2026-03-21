@@ -23,13 +23,14 @@ class PromptRequest:
     prompt: str
     model_name: str = "GEMMA_2B"
     adapter_name: str = None
-    answer: str
+    answer: str = None
 
 def load_model(hf_token):
-    return
+    print("Loading models...")
     global MODELS
     MODELS["GEMMA_2B"]["model"] = Gemma2B(hf_token, True)
     # MODELS["QWEN25_3B"]["model"] = Qwen25_3B(hf_token)
+    print("Models loaded.")
 
 def fetchPromptQueue():
     res = requests.get("http://api.akng.io.vn:89/generation")
@@ -88,9 +89,11 @@ if __name__ == "__main__":
         with open("hf_token.txt", "r") as f:
             hf_token = f.read().strip()
     
+    
     load_model(hf_token)
     
     while True:
+        print("Fetching prompt from queue...")
         prompt_request = fetchPromptQueue()
         if prompt_request is None:
             time.sleep(1)
