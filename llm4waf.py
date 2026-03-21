@@ -208,21 +208,31 @@ class Gemma2B(_WafAttackModel):
             print("Using CUDA device")
             print([torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())])
             self.device = torch.device("cuda")
+            device_map = {"": 0}
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16
+            )
         else:
             print("Using CPU device")
             self.device = torch.device("cpu")
+            device_map = "auto"
+            bnb_config = None  # BitsAndBytesConfig is only for GPU/accelerator
 
         self.base_model = "google/gemma-2-2b-it"
         model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'model')
         self.phase1_adapter_path = os.path.join(model_dir, "remote_gemma2_2b_phase1")
         self.phase3_adapter_path = os.path.join(model_dir, "remote_gemma2_2b_phase3_rl")
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16
+
+        model_kwargs = dict(
+            pretrained_model_name_or_path=self.base_model,
+            device_map=device_map,
+            token=self.hf_token,
+            local_files_only=True
         )
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.base_model, quantization_config=bnb_config, device_map={"": 0},
-            token=self.hf_token, local_files_only=True
-        )
+        if bnb_config is not None:
+            model_kwargs["quantization_config"] = bnb_config
+
+        self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
         self.model = PeftModel.from_pretrained(self.model, self.phase3_adapter_path, adapter_name="phase3_rl")
         self.model.load_adapter(self.phase1_adapter_path, adapter_name="phase1")
         self.tokenizer = AutoTokenizer.from_pretrained(self.base_model, token=self.hf_token, local_files_only=True)
