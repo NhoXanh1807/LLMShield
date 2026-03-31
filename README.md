@@ -30,6 +30,26 @@ python3 main.py
 python3 main.py {HF_TOKEN}
 ```
 
+6. Sử dụng hệ thống
+
+***CURL***
+```sh
+curl -X POST "http://api.akng.io.vn:89/generation?adapter_name=phase1&max_new_tokens=128&temperature=0.7" -d "day la prompt ne"
+
+
+{"success":true,"message":"success","data":"Simulated response to: day la prompt ne"}
+```
+
+***Python requests***
+```python
+import requests
+adapter_name = "phase1"
+max_new_tokens = "128"
+temperature = "0.7"
+res = requests.post(f"http://api.akng.io.vn:89/generation?adapter_name={adapter_name}&max_new_tokens={max_new_tokens}&temperature={temperature}", data="day la prompt ne")
+print(res.text)
+```
+
 # LLMShield - Hướng dẫn phát triển và mở rộng dự án
 
 ## Mục tiêu thiết kế
