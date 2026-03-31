@@ -1,6 +1,6 @@
 from classes import AttackLLMInterface
 
-class FakeTestModel(AttackLLMInterface):
+class SimulateModel(AttackLLMInterface):
     def __init__(self, hf_token, load_immediately=False):
         self.hf_token = hf_token
         self.loaded = False
@@ -8,10 +8,10 @@ class FakeTestModel(AttackLLMInterface):
             self.load_model()
 
     def load_model(self):
-        print("FakeTestModel: Simulating model loading...")
+        print("SimulateModel: Simulating model loading...")
         self.loaded = True
 
-    def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "phase3_rl") -> str:
+    def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "") -> str:
         if not self.loaded:
             self.load_model()
-        return "This is a test response. No real model was loaded."
+        return "Simulated response to: " + prompt

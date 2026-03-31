@@ -12,8 +12,8 @@ from services import fetchPromptQueue, updateAnswer
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
     if model_name == "FAKE":
-        from model_versions.fake_test_model.interface import FakeTestModel
-        model = FakeTestModel(hf_token, load_immediately=True)
+        from model_versions.simulator.interface import SimulateModel
+        model = SimulateModel(hf_token, load_immediately=True)
     elif model_name == "GEMMA_2B":
         from model_versions.gemma2_2b.interface import Gemma2_2B
         model = Gemma2_2B(hf_token, load_immediately=True)
