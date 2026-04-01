@@ -1,7 +1,7 @@
 
 import requests
 import time
-from classes import PromptRequest
+from interfaces import PromptRequest
 
 
 def fetchPromptQueue() -> PromptRequest | None:

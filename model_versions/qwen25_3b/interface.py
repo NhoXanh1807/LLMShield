@@ -1,5 +1,5 @@
 import os
-from classes import AttackLLMInterface
+from interfaces import AttackLLMInterface
 
 class Qwen25_3B(AttackLLMInterface):
     """Qwen2.5-3B-Instruct with LoRA adapters (phase1 + phase3_rl)."""
