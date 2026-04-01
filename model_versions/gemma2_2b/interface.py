@@ -1,5 +1,5 @@
 import os
-from classes import AttackLLMInterface
+from interfaces import AttackLLMInterface
 from enum import Enum
 
 class Gemma2_2B(AttackLLMInterface):
@@ -62,14 +62,12 @@ class Gemma2_2B(AttackLLMInterface):
         }
         
         # Wrap with PeftModel
-        self.model = PeftModel(self.model)
-        # Load adapters
-        for adapter_name in self.adapter_paths:
-            if os.path.exists(self.adapter_paths[adapter_name]):
-                self.model.load_adapter(self.adapter_paths[adapter_name], adapter_name=adapter_name)
-                print(f"Loaded adapter '{adapter_name}' from {self.adapter_paths[adapter_name]}")
-            else:
-                print(f"Warning: Adapter path {self.adapter_paths[adapter_name]} does not exist. Skipping loading this adapter.")
+        self.model = PeftModel.from_pretrained(self.model, self.adapter_paths[self.AdapterName.PHASE1.value], adapter_name=self.AdapterName.PHASE1.value)
+        if os.path.exists(self.adapter_paths[self.AdapterName.PHASE2.value]):
+            self.model.load_adapter(self.adapter_paths[self.AdapterName.PHASE2.value], adapter_name=self.AdapterName.PHASE2.value)
+        if os.path.exists(self.adapter_paths[self.AdapterName.PHASE3_RL.value]):
+            self.model.load_adapter(self.adapter_paths[self.AdapterName.PHASE3_RL.value], adapter_name=self.AdapterName.PHASE3_RL.value)
+        
         self.loaded = True
         print("Gemma-2-2B model loaded successfully.")
 

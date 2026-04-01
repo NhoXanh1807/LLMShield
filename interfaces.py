@@ -10,7 +10,7 @@ class AttackLLMInterface:
     
     def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "") -> str:
         raise NotImplementedError("This method should be implemented by subclasses")
-
+    
 
 @dataclass
 class PromptRequest:
