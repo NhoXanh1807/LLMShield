@@ -11,12 +11,14 @@ class AttackLLMInterface:
     def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "") -> str:
         raise NotImplementedError("This method should be implemented by subclasses")
     
+    def build_prompt(self, args : dict) -> tuple[bool, str]:
+        raise NotImplementedError("This method should be implemented by subclasses")
+    
+    def generate_payload(self, args : dict) -> str:
+        raise NotImplementedError("This method should be implemented by subclasses")
 
 @dataclass
-class PromptRequest:
+class Request:
     id: str
-    prompt: str
-    max_new_tokens: int = 128
-    temperature: float = 0.7
-    adapter_name: str = ""
-    answer: str = None
+    action: str
+    data: dict

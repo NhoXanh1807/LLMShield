@@ -1,4 +1,4 @@
-from classes import AttackLLMInterface
+from interfaces import AttackLLMInterface
 
 class SimulateModel(AttackLLMInterface):
     def __init__(self, hf_token, load_immediately=False):
@@ -15,3 +15,9 @@ class SimulateModel(AttackLLMInterface):
         if not self.loaded:
             self.load_model()
         return "Simulated response to: " + prompt
+    
+    def build_prompt(self, data) -> tuple[bool, str]:
+        return True, "Simulated prompt built!"
+    
+    def generate_payload(self, data) -> str:
+        return "Simulated payload generated"
