@@ -6,7 +6,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 print("importing libraries...")
 
 from config import Config
-from classes import AttackLLMInterface, PromptRequest
+from interfaces import AttackLLMInterface, PromptRequest
 from services import fetchPromptQueue, updateAnswer
 
 
