@@ -77,7 +77,7 @@ class Gemma2_2B(AttackLLMInterface):
             self.load_model()
         
         if adapter_name not in self.adapter_paths:
-            print(f"Warning: Adapter '{adapter_name}' not found. Using default adapter.")
+            print(f"Warning: Adapter '{adapter_name}' not found. Using default adapter '{self.AdapterName.PHASE1.value}'")
             adapter_name = self.AdapterName.PHASE1.value
         self.model.set_adapter(adapter_name)
         
@@ -99,4 +99,5 @@ class Gemma2_2B(AttackLLMInterface):
                 repetition_penalty=1.3,
             )
         response = self.tokenizer.decode(outputs[0][input_length:], skip_special_tokens=True)
+        print(f"Generated response: {response}")
         return response
