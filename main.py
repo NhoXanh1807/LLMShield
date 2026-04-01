@@ -33,6 +33,7 @@ def generate_response(model: AttackLLMInterface, prompt_request: PromptRequest) 
         temperature=prompt_request.temperature, 
         adapter_name=prompt_request.adapter_name
     )
+    print(f"generate_response() -> {response}")
     return response
 
 
@@ -64,6 +65,7 @@ if __name__ == "__main__":
         
         print("Generating response...")
         response = generate_response(model, prompt_request)
+        print("\t" + response.replace("\n", "\n\t"))
         
         print("Updating answer...")
         updateAnswer(prompt_request.id, response)
