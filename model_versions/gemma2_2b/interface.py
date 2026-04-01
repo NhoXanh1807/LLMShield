@@ -73,31 +73,35 @@ class Gemma2_2B(AttackLLMInterface):
 
 
     def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "phase1") -> str:
-        if not self.loaded:
-            self.load_model()
-        
-        if adapter_name not in self.adapter_paths:
-            print(f"Warning: Adapter '{adapter_name}' not found. Using default adapter '{self.AdapterName.PHASE1.value}'")
-            adapter_name = self.AdapterName.PHASE1.value
-        self.model.set_adapter(adapter_name)
-        
-        messages = [{"role": "user", "content": prompt}]
-        formatted_prompt = self.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
-        input_length = inputs.input_ids.shape[1]
-        eos_id = self.tokenizer.eos_token_id
-        with self.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                do_sample=True,
-                eos_token_id=eos_id,
-                pad_token_id=eos_id,
-                repetition_penalty=1.3,
+        try:
+            if not self.loaded:
+                self.load_model()
+            
+            if adapter_name not in self.adapter_paths:
+                print(f"Warning: Adapter '{adapter_name}' not found. Using default adapter '{self.AdapterName.PHASE1.value}'")
+                adapter_name = self.AdapterName.PHASE1.value
+            self.model.set_adapter(adapter_name)
+            
+            messages = [{"role": "user", "content": prompt}]
+            formatted_prompt = self.tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
             )
-        response = self.tokenizer.decode(outputs[0][input_length:], skip_special_tokens=True)
-        print(f"Generated response: {response}")
-        return response
+            inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
+            input_length = inputs.input_ids.shape[1]
+            eos_id = self.tokenizer.eos_token_id
+            with self.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    do_sample=True,
+                    eos_token_id=eos_id,
+                    pad_token_id=eos_id,
+                    repetition_penalty=1.3,
+                )
+            response = self.tokenizer.decode(outputs[0][input_length:], skip_special_tokens=True)
+            print(f"Generated response: {response}")
+            return response
+        except Exception as e:
+            print(f"Error during generation: {e}")
+            return "Error generating response."
