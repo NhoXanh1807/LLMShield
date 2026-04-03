@@ -12,10 +12,10 @@ from services import fetchRequest, updateResponse
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
     if model_name == "FAKE":
-        from model_versions.simulator.interface import SimulateModel
+        from model_versions.simulator.model import SimulateModel
         model = SimulateModel(hf_token, load_immediately=True)
     elif model_name == "GEMMA_2B":
-        from model_versions.gemma2_2b.interface import Gemma2_2B
+        from model_versions.gemma2_2b.model import Gemma2_2B
         model = Gemma2_2B(hf_token, load_immediately=True)
     else:
         print(f"Model {model_name} not found.")
@@ -29,8 +29,8 @@ def generate_response(model: AttackLLMInterface, data: dict) -> str:
         return "Error: No prompt provided."
     response = model.generate(
         prompt=prompt,
-        max_new_tokens=data.get("max_new_tokens", 128), 
-        temperature=data.get("temperature", 0.7), 
+        max_new_tokens=data.get("max_new_tokens", 128),
+        temperature=data.get("temperature", 0.7),
         adapter_name=data.get("adapter_name", "")
     )
     return response

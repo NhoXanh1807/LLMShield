@@ -112,13 +112,13 @@ class Gemma2_2B(AttackLLMInterface):
             return False, "Error: 'waf_name' is required in data."
         if attack_type is None:
             return False, "Error: 'attack_type' is required in data."
-        if technique is None:
-            return False, "Error: 'technique' is required in data."
         
         if probe_history is not None and type(probe_history) == list and len(probe_history) > 0:
             return True, self._build_phase3_prompt(waf_name, attack_type, probe_history)
-        else:
+        elif technique is not None and type(technique) == str and len(technique) > 0:
             return True, self._build_phase1_prompt(waf_name, attack_type, technique)
+        else:
+            return False, "Error: Insufficient data to build prompt. Provide either 'technique' for Phase 1 or 'probe_history' for Phase 3."
 
 
     def generate_payload(self, data : dict) -> str:
@@ -128,11 +128,13 @@ class Gemma2_2B(AttackLLMInterface):
         max_new_tokens = data.get("max_new_tokens", 128)
         temperature = data.get("temperature", 0.7)
         adapter_name = data.get("adapter_name", "phase1")
-        return self.generate(prompt, 
+        generated_text = self.generate(prompt, 
             max_new_tokens=max_new_tokens, 
             temperature=temperature, 
             adapter_name=adapter_name
         )
+        payload = self._clean_payload(generated_text)
+        return payload
 
 
     def _build_phase1_prompt(self, waf_name: str, attack_type: str, technique: str) -> str:
@@ -190,3 +192,18 @@ IMPORTANT:
 - Do NOT add explanations or comments.
 - Do NOT wrap it in code fences."""
         return prompt
+
+
+    def _clean_payload(self, generated_text: str) -> str:
+        payload = generated_text.strip()
+        # Strip code fences
+        if payload.startswith("```") or payload.startswith("`"):
+            lines = payload.split("\n")
+            payload = "\n".join([l for l in lines if not l.strip().startswith("`")])
+            payload = payload.strip()
+        # Take only the first non-empty line (avoid hallucinated multi-line HTML)
+        for line in payload.splitlines():
+            line = line.strip()
+            if line and not line.startswith("Note") and not line.startswith("Explanation"):
+                return line
+        return payload

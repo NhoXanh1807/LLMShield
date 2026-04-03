@@ -1,3 +1,5 @@
+import json
+
 from interfaces import AttackLLMInterface
 
 class SimulateModel(AttackLLMInterface):
@@ -17,7 +19,9 @@ class SimulateModel(AttackLLMInterface):
         return "Simulated response to: " + prompt
     
     def build_prompt(self, data) -> tuple[bool, str]:
-        return True, "Simulated prompt built!"
+        return True, f"SimulatedPrompt({json.dumps(data)})"
     
     def generate_payload(self, data) -> str:
-        return "Simulated payload generated"
+        success, prompt = self.build_prompt(data)
+        data["prompt"] = prompt
+        return f"SimulatedPayload({json.dumps(data)})"

@@ -53,7 +53,7 @@ print(res.text)
 # LLMShield - Hướng dẫn phát triển và mở rộng dự án
 
 ## Mục tiêu thiết kế
-Repo này được thiết kế để mọi phiên bản model đều có thể sử dụng chung một interface chuẩn là `AttackLLMInterface` (định nghĩa trong file `classes.py`). Nhờ đó, hệ thống có thể dễ dàng tích hợp, thử nghiệm và sử dụng bất kỳ model mới nào chỉ bằng cách tuân thủ interface này, mà không cần sửa code lõi.
+Repo này được thiết kế để mọi phiên bản model đều có thể sử dụng chung một interface chuẩn là `AttackLLMInterface` (định nghĩa trong file `/interfaces.py`). Nhờ đó, hệ thống có thể dễ dàng tích hợp, thử nghiệm và sử dụng bất kỳ model mới nào chỉ bằng cách tuân thủ interface này, mà không cần sửa code lõi.
 
 
 ## Cấu trúc thư mục dự án
@@ -61,33 +61,33 @@ Repo này được thiết kế để mọi phiên bản model đều có thể 
 LLMShield/
 ├── main.py                  # ENTRY POINT : file khởi chạy
 ├── config.py                # CẤU HÌNH KHỞI CHẠY
-├── classes.py               # Định nghĩa interface, dataclass chung
+├── interfaces.py            # Định nghĩa interface, dataclass chung
 ├── requirements.txt         # Danh sách thư viện
-├── services.py              # API giao tiếp với Queue
+├── external_services.py     # API giao tiếp với Queue
 └── model_versions/          # Các phiên bản nghiên cứu models
     ├── gemma2_2b/
-    │   ├── interface.py     # MODEL INTERFACE : implement AttackLLMInterface
+    │   ├── model.py         # MODEL INTERFACE : implement AttackLLMInterface
     │   ├── scripts/         # Chứa documents, dataset, scripts preprocess, finetune, test, ... Mọi thứ liên quan đến quá trình phát triển model này.
     │   └── adapters/        # Chứa adapters để sử dụng. 
     ├── qwen25_3b/
-    │   ├── interface.py
+    │   ├── model.py
     │   ├── scripts/
     │   └── adapters/
-    └── ... (các model mới)
-        ├── interface.py
+    └── ...(thêm model mới)...
+        ├── model.py
         ├── scripts/
         └── adapters/
-
 ```
 
 ## Nguyên tắc phát triển
 1. Với mỗi nguyên cứu model mới chúng ta sẽ tạo một thư mục mới trong `model_versions`
 2. Các file làm việc trong lúc phát triển model, ví dụ như datasets, preprocessing scripts, finetuning scripts, test scripts, ... đều phải đặt gọn trong thư mục `scripts`. Thư mục `scripts` là nơi duy nhất được lộn xộn.
 3. Các **adapters** kết quả sau khi finetuning, dùng để test này kia thì phải đặt trong thư mục `adapters`.
-4. Mỗi model version mình phải thiết kế một file `interface.py`, khai báo một class mới, implement interface `AttackLLMInterface` để entry point file `main.py` có thể sử dụng model mới này thông qua interface.
+4. Mỗi model version mình phải thiết kế một file `model.py`, khai báo một class mới, implement interface `AttackLLMInterface` để entry point file `main.py` có thể sử dụng model mới này thông qua interface.
+
 ```python
 # /model_versions/new_model/interface.py
-from classes import AttackLLMInterface
+from interfaces import AttackLLMInterface
 class NewModelClass(AttackLLMInterface):
     def __init__(self, hf_token, load_immediately=False):
         # ...
@@ -95,8 +95,13 @@ class NewModelClass(AttackLLMInterface):
         # ...
     def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "phase1") -> str:
         # ...
+    def build_prompt(self, args : dict) -> tuple[bool, str]:
+        # ...
+    def generate_payload(self, args : dict) -> str:
+        # ...
 ```
-5. Khai báo tên model mới để load model trong hàm `load_model()` trong file `main.py`
+
+5. Khai báo tên model mới để load model trong hàm `load_model()` trong file `/main.py`
 ```python
 # /main.py
 def load_model(model_name, hf_token) -> AttackLLMInterface:
