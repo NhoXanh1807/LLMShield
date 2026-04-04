@@ -1,6 +1,6 @@
 import json
 
-from interfaces import AttackLLMInterface
+from llm.interfaces import AttackLLMInterface
 
 class SimulateModel(AttackLLMInterface):
     def __init__(self, hf_token, load_immediately=False):

@@ -1,5 +1,5 @@
 import os
-from interfaces import AttackLLMInterface
+from llm.interfaces import AttackLLMInterface
 from enum import Enum
 
 class Gemma2_2B(AttackLLMInterface):

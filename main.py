@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timezone, timedelta
 import json
 from config import Config
-from interfaces import AttackLLMInterface
+from llm.interfaces import AttackLLMInterface
 
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
