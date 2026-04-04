@@ -52,6 +52,10 @@ def generate_payload(model: AttackLLMInterface, data: dict) -> str:
 
 
 class LLMServer(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Tuỳ chỉnh format ở đây, ví dụ ghi ra file hoặc đổi format dòng log
+        with open("server.log", "a", encoding="utf-8") as f:
+            f.write(f"[{time.asctime()}] - {self.client_address[0]} - {format % args}\n")
     def do_POST(self):
         try:
             # Đọc dữ liệu truyền đến trong body request
@@ -62,7 +66,7 @@ class LLMServer(BaseHTTPRequestHandler):
             data = json.loads(post_body)
             
             action = params.get("action", [None])[0]
-            print("Action: ", action)
+            print(f"[{time.asctime()}] - Action: {action}...")
             
             if action == "generate":
                 response = generate_response(model, data)
@@ -72,7 +76,7 @@ class LLMServer(BaseHTTPRequestHandler):
                 response = generate_payload(model, data)
             else:
                 response = f"Error: Unknown action '{action}'"
-            print("Response: ")
+            print(f"[{time.asctime()}] - Response:")
             print("\t" + response.replace("\n", "\n\t"))
             
             # Phản hồi
