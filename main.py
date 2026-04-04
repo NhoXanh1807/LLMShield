@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import ngrok
 import time
+import json
 from config import Config
 from interfaces import AttackLLMInterface
 
@@ -58,9 +59,7 @@ class LLMServer(BaseHTTPRequestHandler):
             parsed_url = urlparse(self.path)
             params = parse_qs(parsed_url.query)
             post_body = self.rfile.read(content_len).decode("utf-8")
-            data = { "prompt": post_body }
-            for key in params:
-                data[key] = params[key][0] if len(params[key]) == 1 else params[key]
+            data = json.loads(post_body)
             
             action = params.get("action", [None])[0]
             print("Action: ", action)
