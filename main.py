@@ -12,7 +12,6 @@ import ngrok
 import time
 from config import Config
 from interfaces import AttackLLMInterface
-# from external_services import fetchRequest, updateResponse
 
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
@@ -118,27 +117,3 @@ if __name__ == "__main__":
         pass
     httpd.server_close()
     print(time.asctime(), "Stop Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
-    
-    # while True:
-    #     print("Fetching request from queue...")
-    #     request = None
-    #     while request is None:
-    #         request = fetchRequest()
-    #         time.sleep(1)
-        
-    #     print("Request: ", request.action)
-    #     response = None
-    #     if request.action == "generate":
-    #         response = generate_response(model, request.data)
-    #     elif request.action == "build_prompt":
-    #         response = build_prompt(model, request.data)
-    #     elif request.action == "generate_payload":
-    #         response = generate_payload(model, request.data)
-    #     else:
-    #         response = f"Error: Unknown action '{request.action}'"
-    #     print("Response: ")
-    #     print("\t" + response.replace("\n", "\n\t"))
-        
-    #     print("Updating answer...")
-    #     updateResponse(request.id, response)
-
