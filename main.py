@@ -37,7 +37,7 @@ def generate_response(model: AttackLLMInterface, data: dict) -> str:
         prompt=prompt,
         max_new_tokens=data.get("max_new_tokens", 128),
         temperature=data.get("temperature", 0.7),
-        adapter_name=data.get("adapter_name", "")
+        adapter_name=data.get("adapter_name", ""),
     )
     return response
 
@@ -69,6 +69,7 @@ class LLMServer(BaseHTTPRequestHandler):
             action = params.get("action", [None])[0]
             print(f"[{self.now()}] - {self.command} : '{self.path}'")
             print(f"[{self.now()}] - Action: {action}...")
+            print(json.dumps(data, indent=4, ensure_ascii=False))
             
             if action == "generate":
                 response = generate_response(model, data)
