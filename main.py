@@ -50,7 +50,8 @@ def build_prompt(model: AttackLLMInterface, data: dict) -> str:
 def generate_payload(model: AttackLLMInterface, data: dict) -> str:
     return model.generate_payload(data)
 
-
+def rag_retrieve(model: AttackLLMInterface, data: dict) -> str:
+    return "RAG relevance documents..."
 
 class LLMServer(BaseHTTPRequestHandler):
     def now(self):
@@ -77,6 +78,8 @@ class LLMServer(BaseHTTPRequestHandler):
                 response = build_prompt(model, data)
             elif action == "generate_payload":
                 response = generate_payload(model, data)
+            elif action == "rag_retrieve":
+                response = rag_retrieve(model, data)
             else:
                 response = f"Error: Unknown action '{action}'"
             print(f"[{self.now()}] - Response:")
