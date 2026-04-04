@@ -1,12 +1,18 @@
 
+
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 print("importing libraries...")
 
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import traceback
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
+import ngrok
 import time
 from config import Config
-from interfaces import AttackLLMInterface, Request
-from external_services import fetchRequest, updateResponse
+from interfaces import AttackLLMInterface
+# from external_services import fetchRequest, updateResponse
 
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
@@ -45,6 +51,42 @@ def generate_payload(model: AttackLLMInterface, data: dict) -> str:
 
 
 
+class LLMServer(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            # Đọc dữ liệu truyền đến trong body request
+            content_len = int(self.headers.get("Content-Length"))
+            parsed_url = urlparse(self.path)
+            params = parse_qs(parsed_url.query)
+            post_body = self.rfile.read(content_len).decode("utf-8")
+            data = { "prompt": post_body }
+            for key in params:
+                data[key] = params[key][0] if len(params[key]) == 1 else params[key]
+            
+            action = params.get("action", [None])[0]
+            print("Action: ", action)
+            
+            if action == "generate":
+                response = generate_response(model, data)
+            elif action == "build_prompt":
+                response = build_prompt(model, data)
+            elif action == "generate_payload":
+                response = generate_payload(model, data)
+            else:
+                response = f"Error: Unknown action '{action}'"
+            print("Response: ")
+            print("\t" + response.replace("\n", "\n\t"))
+            
+            # Phản hồi
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(response.encode("utf-8"))
+        except Exception as e:
+            tb = traceback.format_exc()
+            print("Trace : " + tb)
+            self.send_error(500, str(e))
+
+
 if __name__ == "__main__":
     print("Config model name :", Config.MODEL_NAME)
     # Load HF token from command line argument or file
@@ -62,27 +104,41 @@ if __name__ == "__main__":
         exit(1)
     
     model = load_model(Config.MODEL_NAME, Config.HF_TOKEN)
+    httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
+    ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
+    listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
+    ADDRESS = listener.url()
+    print(f"NGROK FORWARD ADDRESS : {ADDRESS}")
+
+    # Start HTTPServer
+    print(time.asctime(), "Start Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    httpd.server_close()
+    print(time.asctime(), "Stop Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
     
-    while True:
-        print("Fetching request from queue...")
-        request = None
-        while request is None:
-            request = fetchRequest()
-            time.sleep(1)
+    # while True:
+    #     print("Fetching request from queue...")
+    #     request = None
+    #     while request is None:
+    #         request = fetchRequest()
+    #         time.sleep(1)
         
-        print("Request: ", request.action)
-        response = None
-        if request.action == "generate":
-            response = generate_response(model, request.data)
-        elif request.action == "build_prompt":
-            response = build_prompt(model, request.data)
-        elif request.action == "generate_payload":
-            response = generate_payload(model, request.data)
-        else:
-            response = f"Error: Unknown action '{request.action}'"
-        print("Response: ")
-        print("\t" + response.replace("\n", "\n\t"))
+    #     print("Request: ", request.action)
+    #     response = None
+    #     if request.action == "generate":
+    #         response = generate_response(model, request.data)
+    #     elif request.action == "build_prompt":
+    #         response = build_prompt(model, request.data)
+    #     elif request.action == "generate_payload":
+    #         response = generate_payload(model, request.data)
+    #     else:
+    #         response = f"Error: Unknown action '{request.action}'"
+    #     print("Response: ")
+    #     print("\t" + response.replace("\n", "\n\t"))
         
-        print("Updating answer...")
-        updateResponse(request.id, response)
+    #     print("Updating answer...")
+    #     updateResponse(request.id, response)
 
