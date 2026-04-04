@@ -110,10 +110,12 @@ if __name__ == "__main__":
     
     model = load_model(Config.MODEL_NAME, Config.HF_TOKEN)
     httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
+    
+    # NGROK
     ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
     listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
     ADDRESS = listener.url()
-    print(f"NGROK FORWARD ADDRESS : {ADDRESS}")
+    print(f"NGROK: {Config.HOST_NAME}:{Config.PORT} -> {ADDRESS}")
 
     # Start HTTPServer
     print(time.asctime(), "Start Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
