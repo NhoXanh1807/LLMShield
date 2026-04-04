@@ -1,3 +1,6 @@
+https://github.com/NhoXanh1807/LLMShield
+https://github.com/NhoXanh1807/LLM4WAF
+
 ## Hướng dẫn chạy repo
 
 1. Khuyến nghị sử dụng python-venv
