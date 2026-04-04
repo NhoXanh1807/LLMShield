@@ -50,8 +50,62 @@ def build_prompt(model: AttackLLMInterface, data: dict) -> str:
 def generate_payload(model: AttackLLMInterface, data: dict) -> str:
     return model.generate_payload(data)
 
-def rag_retrieve(model: AttackLLMInterface, data: dict) -> str:
-    return "RAG relevance documents..."
+def rag_retrieve(data: dict) -> str:
+    try:
+        # Import tại chỗ để tránh circular dependency khi server start
+        from rag.rag_service import enhance_defense_generation
+
+        waf_info = data.get("waf_info", {})
+        bypassed_payloads = data.get("bypassed_payloads", [])
+        bypassed_instructions = data.get("bypassed_instructions", [])
+        base_user_prompt = data.get("base_user_prompt", "")
+
+        result = enhance_defense_generation(
+            waf_info=waf_info,
+            bypassed_payloads=bypassed_payloads,
+            bypassed_instructions=bypassed_instructions,
+            base_user_prompt=base_user_prompt,
+            docs_folder="./docs/",
+            vector_store_path="./vector_store/",
+            enable_rag=True,
+            filter_rules_only=True,
+            force_rebuild=False
+        )
+
+        # Convert sang JSONL (mỗi dòng 1 JSON object)
+        jsonl_lines = []
+
+        # Metadata tổng
+        meta = {
+            "type": "meta",
+            "rag_used": result.get("rag_used", False),
+            "num_docs": result.get("num_docs", 0),
+            "num_queries": result.get("num_queries", 0),
+            "waf_filtered": result.get("waf_filtered", False)
+        }
+        jsonl_lines.append(json.dumps(meta, ensure_ascii=False))
+
+        # Context
+        if result.get("rag_context"):
+            jsonl_lines.append(json.dumps({
+                "type": "context",
+                "content": result["rag_context"]
+            }, ensure_ascii=False))
+
+        # Sources
+        for src in result.get("sources", []):
+            jsonl_lines.append(json.dumps({
+                "type": "source",
+                "data": src
+            }, ensure_ascii=False))
+
+        return "\n".join(jsonl_lines)
+
+    except Exception as e:
+        return json.dumps({
+            "type": "error",
+            "message": str(e)
+        }, ensure_ascii=False)
 
 class LLMServer(BaseHTTPRequestHandler):
     def now(self):
