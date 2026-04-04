@@ -111,7 +111,6 @@ def load_model(model_name, hf_token) -> AttackLLMInterface:
         model = NewModelClass(hf_token, load_immediately=True)
     #...
     return model
-
 ```
 
 

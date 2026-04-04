@@ -1,13 +1,12 @@
 
-import time
 import sys
-import json
 sys.stdout.reconfigure(encoding='utf-8')
 print("importing libraries...")
 
+import time
 from config import Config
 from interfaces import AttackLLMInterface, Request
-from services import fetchRequest, updateResponse
+from external_services import fetchRequest, updateResponse
 
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
@@ -86,3 +85,4 @@ if __name__ == "__main__":
         
         print("Updating answer...")
         updateResponse(request.id, response)
+
