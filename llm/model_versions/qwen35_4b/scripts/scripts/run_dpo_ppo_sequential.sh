@@ -96,7 +96,7 @@ tok.pad_token = tok.pad_token or tok.eos_token
 
 import torch
 dtype = torch.bfloat16
-base  = AutoModelForCausalLM.from_pretrained(base_model, torch_dtype=dtype, device_map="auto", trust_remote_code=True)
+base  = AutoModelForCausalLM.from_pretrained(base_model, dtype=dtype, device_map="auto", trust_remote_code=True)
 model = PeftModel.from_pretrained(base, adapter_path, is_trainable=False)
 model.eval()
 

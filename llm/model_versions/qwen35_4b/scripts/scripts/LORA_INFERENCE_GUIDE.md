@@ -23,7 +23,7 @@ ADAPTER_PATH = "./output_phase6_dpo_retrain_20260404T043633Z/final_adapter"
 base_model = AutoModelForCausalLM.from_pretrained(
     "Qwen/Qwen3.5-4B",
     device_map="auto",
-    torch_dtype=torch.bfloat16,
+    dtype=torch.bfloat16,
 )
 
 # 2. Attach PEFT Adapter

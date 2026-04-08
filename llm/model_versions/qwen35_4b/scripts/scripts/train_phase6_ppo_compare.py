@@ -107,7 +107,7 @@ def main():
     policy_base = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         quantization_config=bnb_config,
-        torch_dtype=None if args.load_in_4bit else dtype,
+        dtype=None if args.load_in_4bit else dtype,
         device_map="auto",
         trust_remote_code=True,
     )
@@ -119,7 +119,7 @@ def main():
     ref_base = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         quantization_config=bnb_config,
-        torch_dtype=None if args.load_in_4bit else dtype,
+        dtype=None if args.load_in_4bit else dtype,
         device_map="auto",
         trust_remote_code=True,
     )
@@ -130,14 +130,14 @@ def main():
 
     reward_model = AutoModelForSequenceClassification.from_pretrained(
         args.reward_model,
-        torch_dtype=dtype,
+        dtype=dtype,
         device_map="auto",
         trust_remote_code=True,
     )
     reward_model = ensure_scalar_reward_head(reward_model)
     value_model = AutoModelForSequenceClassification.from_pretrained(
         args.reward_model,
-        torch_dtype=dtype,
+        dtype=dtype,
         device_map="auto",
         trust_remote_code=True,
     )

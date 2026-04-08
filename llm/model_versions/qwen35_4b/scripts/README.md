@@ -99,7 +99,7 @@ from peft import PeftModel
 base = AutoModelForCausalLM.from_pretrained(
     "Qwen/Qwen3.5-4B",
     device_map="auto",
-    torch_dtype=torch.bfloat16,
+    dtype=torch.bfloat16,
 )
 
 # Load PPO (best overall)

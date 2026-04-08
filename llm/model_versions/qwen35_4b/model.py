@@ -42,7 +42,7 @@ class Qwen35_4B(AttackLLMInterface):
             self.BASE_MODEL,
             device_map=device_map,
             token=self.hf_token,
-            torch_dtype=torch.bfloat16,
+            dtype=torch.bfloat16,
             trust_remote_code=True
         )
         self.tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, trust_remote_code=True)

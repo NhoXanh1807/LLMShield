@@ -11,7 +11,7 @@ def generate_payload(adapter_path, vuln_type, constraint, model_id="Qwen/Qwen3.5
     base_model = AutoModelForCausalLM.from_pretrained(
         model_id,
         device_map="auto",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         trust_remote_code=True
     )
     

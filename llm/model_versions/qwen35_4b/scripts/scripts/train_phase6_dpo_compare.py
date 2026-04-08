@@ -93,7 +93,7 @@ def main():
     model_base = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         quantization_config=bnb_config,
-        torch_dtype=None if args.load_in_4bit else dtype,
+        dtype=None if args.load_in_4bit else dtype,
         device_map="auto",
         trust_remote_code=True,
     )
@@ -102,7 +102,7 @@ def main():
     ref_base = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         quantization_config=bnb_config,
-        torch_dtype=None if args.load_in_4bit else dtype,
+        dtype=None if args.load_in_4bit else dtype,
         device_map="auto",
         trust_remote_code=True,
     )

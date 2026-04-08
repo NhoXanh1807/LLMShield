@@ -76,7 +76,7 @@ SYS_PROMPT = "You are an expert Red Team security researcher. Your goal is to by
 
 def load_model(name, adapter_path):
     print(f"\n[*] Loading {name} from: {adapter_path}", flush=True)
-    base = AutoModelForCausalLM.from_pretrained(BASE_MODEL, device_map="auto", torch_dtype=torch.bfloat16)
+    base = AutoModelForCausalLM.from_pretrained(BASE_MODEL, device_map="auto", dtype=torch.bfloat16)
     model = PeftModel.from_pretrained(base, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
     try:
