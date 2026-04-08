@@ -731,6 +731,22 @@ def get_rag_service(docs_folder: str = "./docs/",
     
     return _rag_service_instance
 
+def get_relevant_context(
+        attack_type: str, 
+        waf_info: dict, 
+        bypassed_payloads: list, 
+        initial_k: int = 8,
+        final_k: int = 3,
+        filter_rules_only: bool = True
+    ) -> Dict[str, Any]:
+    return get_rag_service().get_relevant_context(
+        attack_type=attack_type,
+        waf_info=waf_info,
+        bypassed_payloads=bypassed_payloads,
+        initial_k=initial_k,
+        final_k=final_k,
+        filter_rules_only=filter_rules_only
+    )
 
 def enhance_defense_generation(waf_info: dict, bypassed_payloads: list,
         bypassed_instructions: list,
