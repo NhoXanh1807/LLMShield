@@ -84,7 +84,7 @@ class Gemma2_2B(AttackLLMInterface):
         self.model.set_adapter(adapter_name)
         
         messages = [{"role": "user", "content": prompt}]
-        print(json.dumps(messages, indent=2))
+        print(f"Messages form prompt: \n\t{json.dumps(messages, indent=2).replace('\n', '\n\t')}")
         formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         print(f"Formatted prompt:\n\t{formatted_prompt.replace('\n', '\n\t')}")
         inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
