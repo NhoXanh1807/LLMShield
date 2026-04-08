@@ -38,14 +38,14 @@ class Qwen35_4B(AttackLLMInterface):
             device_map = "auto"
 
         # Load base model
-        base_model = AutoModelForCausalLM.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
             self.BASE_MODEL,
             device_map=device_map,
             token=self.hf_token,
             dtype=torch.bfloat16,
             trust_remote_code=True
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, trust_remote_code=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model, trust_remote_code=True)
         self.tokenizer.pad_token = self.tokenizer.pad_token or self.tokenizer.eos_token
         
         # Prepare adapter paths
