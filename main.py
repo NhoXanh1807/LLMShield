@@ -23,6 +23,9 @@ def load_model(model_name, hf_token) -> AttackLLMInterface:
     elif model_name == "GEMMA_2B":
         from llm.model_versions.gemma2_2b.model import Gemma2_2B
         model = Gemma2_2B(hf_token, load_immediately=True)
+    elif model_name == "QWEN_4B":
+        from llm.model_versions.qwen35_4b.model import Qwen35_4B
+        model = Qwen35_4B(hf_token, load_immediately=True)
     else:
         print(f"Model {model_name} not found.")
         exit(1)
