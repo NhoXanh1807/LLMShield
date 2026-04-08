@@ -723,7 +723,7 @@ def get_rag_service(docs_folder: str = "./docs/",
 
 def get_relevant_context(
         attack_type: str, 
-        waf_info: dict, 
+        waf_name: str, 
         bypassed_payloads: list, 
         initial_k: int = 8,
         final_k: int = 3,
@@ -731,7 +731,7 @@ def get_relevant_context(
     ) -> Dict[str, Any]:
     return get_rag_service().get_relevant_context(
         attack_type=attack_type,
-        waf_info=waf_info,
+        waf_name=waf_name,
         bypassed_payloads=bypassed_payloads,
         initial_k=initial_k,
         final_k=final_k,
