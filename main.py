@@ -117,7 +117,7 @@ class LLMServer(BaseHTTPRequestHandler):
                 if key not in data:
                     data[key] = params[key][0] if len(params[key]) == 1 else params[key]
             
-            action = params.get("action", [None])[0]
+            action = data.get("action", None)
             print(f"[{self.now()}] - {self.command} : '{self.path}'")
             print(f"[{self.now()}] - Action: {action}...")
             print(json.dumps(data, indent=4, ensure_ascii=False))
