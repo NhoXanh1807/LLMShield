@@ -18,10 +18,10 @@ from llm.interfaces import AttackLLMInterface
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
     if model_name == "FAKE":
-        from model_versions.simulator.model import SimulateModel
+        from llm.model_versions.simulator.model import SimulateModel
         model = SimulateModel(hf_token, load_immediately=True)
     elif model_name == "GEMMA_2B":
-        from model_versions.gemma2_2b.model import Gemma2_2B
+        from llm.model_versions.gemma2_2b.model import Gemma2_2B
         model = Gemma2_2B(hf_token, load_immediately=True)
     else:
         print(f"Model {model_name} not found.")
