@@ -8,12 +8,14 @@ import traceback
 import ngrok
 import json
 import threading
+import os
 from config import Config
 from datetime import datetime, timezone, timedelta
 from llm.interfaces import AttackLLMInterface
 from llm.model_versions.simulator.model import SimulateModel
 from llm.model_versions.gemma2_2b.model import Gemma2_2B
 from llm.model_versions.qwen35_4b.model import Qwen35_4B
+from rag.rag_service import get_rag_service
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -59,6 +61,7 @@ def rag_retrieve(data: dict) -> str:
             filter_rules_only=True,
             force_rebuild=False
         )
+        return json.dumps(result, ensure_ascii=False)
 
         # Convert sang JSONL (mỗi dòng 1 JSON object)
         jsonl_lines = []
@@ -187,6 +190,8 @@ def main():
         # Initialize
         Config.HF_TOKEN = load_HF_token()
         Config.MODEL = load_model(Config.HF_TOKEN)
+        rag_docs_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "rag", "docs")
+        get_rag_service(docs_folder=rag_docs_folder)
         
         # Start HTTPServer
         httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
