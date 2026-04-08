@@ -1,6 +1,7 @@
 import os
 from llm.interfaces import AttackLLMInterface
 from enum import Enum
+import json
 
 class Qwen35_4B(AttackLLMInterface):
     def __init__(self, hf_token, load_immediately=False):
@@ -83,10 +84,10 @@ class Qwen35_4B(AttackLLMInterface):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": prompt},
         ]
-        
-        # Apply template (Qwen style)
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = self.tokenizer(text=text, return_tensors="pt").to(self.model.device)
+        print(json.dumps(messages, indent=2))
+        formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        print(f"Formatted prompt:\n\t{formatted_prompt.replace('\n', '\n\t')}")
+        inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
         
         import torch
         with torch.no_grad():
