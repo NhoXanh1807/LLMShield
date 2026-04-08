@@ -514,6 +514,9 @@ class RAGDefenseService:
         
         try:
             queries = self._generate_query_variants(attack_type, waf_info, bypassed_payloads)
+            print(f"Generated {len(queries)} query variants for retrieval")
+            for query in queries:
+                print(f"\t- {query}")
             
             all_retrieved_docs = []
             seen_contents = set()
@@ -522,7 +525,7 @@ class RAGDefenseService:
             
             for query in queries:
                 docs = self.retriever.invoke(query)
-                
+                print(f"Retrieved {len(docs)} documents for query: {query}")
                 for doc in docs:
                     content_hash = hash(doc.page_content[:200])
                     if content_hash not in seen_contents:
@@ -538,6 +541,7 @@ class RAGDefenseService:
             
             # WAF-specific filtering
             waf_name = self._extract_waf_name(waf_info)
+            print(f"WAF detected: {waf_name if waf_name else 'None'}")
             
             if filter_rules_only:
                 # Separate by data_type and waf_type
