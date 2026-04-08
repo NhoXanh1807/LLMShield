@@ -57,7 +57,7 @@ class Qwen35_4B(AttackLLMInterface):
         }
         
         # Load adapter
-        self.model = PeftModel.from_pretrained(self.model, adapter_name=self.adapter_paths[self.AdapterName.DPO_BEST.value])
+        self.model = PeftModel.from_pretrained(self.model, self.adapter_paths[self.AdapterName.DPO_BEST.value], adapter_name=self.AdapterName.DPO_BEST.value)
         if os.path.exists(self.adapter_paths[self.AdapterName.DPO_BEST.value]):
             self.model.load_adapter(self.adapter_paths[self.AdapterName.DPO_BEST.value], adapter_name=self.AdapterName.DPO_BEST.value)
         if os.path.exists(self.adapter_paths[self.AdapterName.PPO_BEST.value]):
