@@ -14,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 import json
 from config import Config
 from llm.interfaces import AttackLLMInterface
+import threading
 
 
 def load_model(model_name, hf_token) -> AttackLLMInterface:
@@ -172,16 +173,26 @@ if __name__ == "__main__":
     httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
     
     # NGROK
-    # ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
-    # listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
-    # ADDRESS = listener.url()
-    # print(f"NGROK: {Config.HOST_NAME}:{Config.PORT} -> {ADDRESS}")
+    ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
+    listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
+    ADDRESS = listener.url()
+    print(f"NGROK: {Config.HOST_NAME}:{Config.PORT} -> {ADDRESS}")
 
     # Start HTTPServer
-    print(time.asctime(), "Start Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    print(time.asctime(), "Stop Server - %s:%s" % (Config.HOST_NAME, Config.PORT))
+    def run_server():
+        try:
+            httpd.serve_forever()
+        except Exception as e:
+            traceback.print_exc()
+            print(f"Server error: {e}")
+    thread = threading.Thread(target=run_server)
+    thread.start()
+
+    while True:
+        cmd = input("Type 'exit' to stop server: ")
+        if cmd.strip() == "exit":
+            httpd.shutdown()
+            break
+
+    thread.join()
+    print("Server stopped. Exiting.")
