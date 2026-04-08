@@ -46,7 +46,7 @@ def rag_retrieve(data: dict) -> str:
         from rag.rag_service import get_relevant_context
 
         attack_type = data.get("attack_type", "")
-        waf_info = data.get("waf_info", {})
+        waf_name = data.get("waf_name", {})
         bypassed_payloads = data.get("bypassed_payloads", [])
         initial_k = data.get("initial_k", 10)
         final_k = data.get("final_k", 3)
@@ -54,7 +54,7 @@ def rag_retrieve(data: dict) -> str:
 
         result = get_relevant_context(
             attack_type=attack_type,
-            waf_info=waf_info,
+            waf_name=waf_name,
             bypassed_payloads=bypassed_payloads,
             initial_k=initial_k,
             final_k=final_k,
