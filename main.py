@@ -54,12 +54,12 @@ def rag_retrieve(data: dict) -> str:
             waf_info=waf_info,
             bypassed_payloads=bypassed_payloads,
         )
-        return json.dumps(result, ensure_ascii=False)
+        return json.dumps(result, indent=4, ensure_ascii=False)
     except Exception as e:
         return json.dumps({
             "type": "error",
             "message": str(e)
-        }, ensure_ascii=False)
+        }, indent=4, ensure_ascii=False)
 
 
 class LLMServer(BaseHTTPRequestHandler):
