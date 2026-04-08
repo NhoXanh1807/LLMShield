@@ -48,11 +48,17 @@ def rag_retrieve(data: dict) -> str:
         attack_type = data.get("attack_type", "")
         waf_info = data.get("waf_info", {})
         bypassed_payloads = data.get("bypassed_payloads", [])
+        initial_k = data.get("initial_k", 10)
+        final_k = data.get("final_k", 3)
+        filter_rules_only = data.get("filter_rules_only", False)
 
         result = get_relevant_context(
             attack_type=attack_type,
             waf_info=waf_info,
             bypassed_payloads=bypassed_payloads,
+            initial_k=initial_k,
+            final_k=final_k,
+            filter_rules_only=filter_rules_only
         )
         return json.dumps(result, indent=4, ensure_ascii=False)
     except Exception as e:

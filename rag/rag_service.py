@@ -434,7 +434,7 @@ class RAGDefenseService:
         
         return chunks
     
-    def _generate_query_variants(self, attack_type: str, waf_info: dict, 
+    def _generate_query_variants(self, attack_type: str, waf_name: str, 
                                 bypassed_payloads: list) -> List[str]:
         """Generate multiple query variants for multi-query retrieval"""
         queries = []
@@ -442,10 +442,8 @@ class RAGDefenseService:
         attack_name = attack_type
         queries.append(f"{attack_name} defense strategies and prevention")
         
-        if waf_info:
-            waf_name = waf_info.get("waf", "")
-            if waf_name:
-                queries.append(f"{waf_name} {attack_name} protection rules")
+        if waf_name:
+            queries.append(f"{waf_name} {attack_name} protection rules")
         
         if bypassed_payloads:
             sample_payload = str(bypassed_payloads[0])[:100].lower()
@@ -463,16 +461,18 @@ class RAGDefenseService:
         
         return queries
     
-    def _extract_waf_name(self, waf_info: dict) -> Optional[str]:
-        """Extract WAF name from waf_info and map to WAF_type"""
-        if not waf_info:
+    def _extract_waf_name(self, waf_name: str) -> Optional[str]:
+        """Extract WAF name from waf_name and map to WAF_type"""
+        if not waf_name:
             return None
         
-        waf_name = waf_info.get("waf", "").lower()
+        waf_name = waf_name.lower()
         
         # Map WAF names to WAF_type
         waf_mapping = {
             "cloudflare": "Cloudflare",
+            "cloudflare waf": "Cloudflare",
+            "cloud flare": "Cloudflare",
             "modsecurity": "ModSecurity",
             "mod_security": "ModSecurity",
             "aws": "AWS",
@@ -486,7 +486,7 @@ class RAGDefenseService:
         
         return None
     
-    def get_relevant_context(self, attack_type: str, waf_info: dict, 
+    def get_relevant_context(self, attack_type: str, waf_name: str, 
                         bypassed_payloads: list, 
                         initial_k: int = 8,
                         final_k: int = 3,
@@ -496,7 +496,7 @@ class RAGDefenseService:
         
         Args:
             attack_type: Type of attack (e.g., "XSS", "SQLI")
-            waf_info: WAF information dict
+            waf_name: WAF name string
             bypassed_payloads: List of payloads that bypassed WAF
             initial_k: Number of documents to retrieve per query
             final_k: Number of documents after re-ranking
@@ -505,21 +505,24 @@ class RAGDefenseService:
         Returns:
             Dict containing context and metadata
         """
+        result = {
+            "rag_enabled": self.enable_rag,
+            "sources": [],
+            "context": "",
+        }
         if not self.enable_rag:
-            return {
-                "context": "",
-                "sources": [],
-                "rag_enabled": False
-            }
+            return result
+        
         
         try:
-            queries = self._generate_query_variants(attack_type, waf_info, bypassed_payloads)
+            queries = self._generate_query_variants(attack_type, waf_name, bypassed_payloads)
+            result["num_queries"] = len(queries)
             print(f"Generated {len(queries)} query variants for retrieval")
             for query in queries:
                 print(f"\t- {query}")
             
             all_retrieved_docs = []
-            seen_contents = set()
+            seen_contents_hash = set()
             
             self.retriever.search_kwargs["k"] = initial_k
             
@@ -528,20 +531,13 @@ class RAGDefenseService:
                 print(f"Retrieved {len(docs)} documents for query: {query}")
                 for doc in docs:
                     content_hash = hash(doc.page_content[:200])
-                    if content_hash not in seen_contents:
-                        seen_contents.add(content_hash)
+                    if content_hash not in seen_contents_hash:
+                        seen_contents_hash.add(content_hash)
                         all_retrieved_docs.append(doc)
+            result["num_docs_all"] = len(all_retrieved_docs)
             
-            if not all_retrieved_docs:
-                return {
-                    "context": "",
-                    "sources": [],
-                    "rag_enabled": True
-                }
-            
-            # WAF-specific filtering
-            waf_name = self._extract_waf_name(waf_info)
-            print(f"WAF detected: {waf_name if waf_name else 'None'}")
+            if waf_name:
+                print(f"WAF detected: {waf_name}")
             
             if filter_rules_only:
                 # Separate by data_type and waf_type
@@ -586,18 +582,17 @@ class RAGDefenseService:
                         filtered_docs = all_retrieved_docs
             else:
                 filtered_docs = all_retrieved_docs
+            result["num_docs_filtered"] = len(filtered_docs)
             
             # Re-rank all filtered documents
             primary_query = queries[0]
             reranked_results = self.reranker.rerank(primary_query, filtered_docs, top_k=final_k)
-            reranked_docs = [doc for doc, score in reranked_results]
-            rerank_scores = [score for doc, score in reranked_results]
             
             # Build context
             context_parts = []
             sources = []
             
-            for i, (doc, score) in enumerate(zip(reranked_docs, rerank_scores)):
+            for i, (doc, score) in enumerate(reranked_results):
                 context_parts.append(f"[Reference {i+1}]\n{doc.page_content}")
                 sources.append({
                     "source": doc.metadata.get("source", "Unknown"),
@@ -606,26 +601,15 @@ class RAGDefenseService:
                     "relevance_score": f"{score:.3f}",
                     "content": doc.page_content
                 })
-            
             context = "\n\n".join(context_parts)
-            
-            return {
-                "sources": sources,
-                "rag_enabled": True,
-                "num_docs": len(reranked_docs),
-                "num_queries": len(queries),
-                "waf_filtered": waf_name is not None,
-                "context": context,
-            }
+            result["context"] = context
+            result["sources"] = sources
+            return result
             
         except Exception as e:
             print(f"Error: Context retrieval failed: {str(e)}")
-            return {
-                "context": "",
-                "sources": [],
-                "rag_enabled": True,
-                "error": str(e)
-            }
+            result["error"] = str(e)
+            return result
     
     def enhance_defense_prompt(self, waf_info: dict, bypassed_payloads: list, 
             bypassed_instructions: list, 
@@ -736,6 +720,7 @@ def get_rag_service(docs_folder: str = "./docs/",
     
     return _rag_service_instance
 
+
 def get_relevant_context(
         attack_type: str, 
         waf_info: dict, 
@@ -750,46 +735,5 @@ def get_relevant_context(
         bypassed_payloads=bypassed_payloads,
         initial_k=initial_k,
         final_k=final_k,
-        filter_rules_only=filter_rules_only
-    )
-
-def enhance_defense_generation(waf_info: dict, bypassed_payloads: list,
-        bypassed_instructions: list,
-        base_user_prompt: str,
-        docs_folder: str = "./docs/",
-        vector_store_path: str = "./vector_store/",
-        enable_rag: bool = True,
-        filter_rules_only: bool = True,
-        force_rebuild: bool = False
-    ) -> Dict[str, Any]:
-    """
-    Convenience function to enhance defense prompt with RAG
-    
-    Args:
-        waf_info: WAF information
-        bypassed_payloads: List of bypassed payloads
-        bypassed_instructions: Instructions for bypassed payloads
-        base_user_prompt: Base user prompt from get_blue_team_user_prompt
-        docs_folder: Path to documents folder
-        vector_store_path: Path to vector store
-        enable_rag: Whether to enable RAG
-        filter_rules_only: Whether to prioritize Rules documents (default: True)
-        force_rebuild: Force rebuild vector store
-    
-    Returns:
-        Dict with enhanced_prompt and metadata
-    """
-    rag_service = get_rag_service(
-        docs_folder=docs_folder,
-        vector_store_path=vector_store_path,
-        enable_rag=enable_rag,
-        force_rebuild=force_rebuild
-    )
-    
-    return rag_service.enhance_defense_prompt(
-        waf_info=waf_info,
-        bypassed_payloads=bypassed_payloads,
-        bypassed_instructions=bypassed_instructions,
-        base_user_prompt=base_user_prompt,
         filter_rules_only=filter_rules_only
     )
