@@ -88,7 +88,7 @@ class Qwen35_4B(AttackLLMInterface):
         formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         print(f"Formatted prompt:\n\t{formatted_prompt.replace('\n', '\n\t')}")
         inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
-        
+        input_length = inputs.input_ids.shape[1]
         import torch
         with torch.no_grad():
             outputs = self.model.generate(
@@ -98,9 +98,8 @@ class Qwen35_4B(AttackLLMInterface):
                 repetition_penalty=1.3,
                 pad_token_id=self.tokenizer.eos_token_id
             )
-        generated_ids = outputs[0, inputs.input_ids.shape[1]:]
-        response = self.tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
-        return response
+        response = self.tokenizer.decode(outputs[0][input_length:], skip_special_tokens=True)
+        return response.strip()
 
 
     def build_prompt(self, data : dict) -> tuple[bool, str]:

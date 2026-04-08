@@ -123,7 +123,11 @@ class LLMServer(BaseHTTPRequestHandler):
             parsed_url = urlparse(self.path)
             params = parse_qs(parsed_url.query)
             post_body = self.rfile.read(content_len).decode("utf-8")
-            data = json.loads(post_body)
+            data = {}
+            try:
+                data = json.loads(post_body)
+            except json.JSONDecodeError:
+                pass
             for key in params:
                 if key not in data:
                     data[key] = params[key][0] if len(params[key]) == 1 else params[key]
