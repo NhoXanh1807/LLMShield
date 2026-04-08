@@ -439,7 +439,7 @@ class RAGDefenseService:
         """Generate multiple query variants for multi-query retrieval"""
         queries = []
         
-        attack_name = "XSS" if attack_type == "XSS" else "SQL injection"
+        attack_name = attack_type
         queries.append(f"{attack_name} defense strategies and prevention")
         
         if waf_info:
@@ -603,18 +603,19 @@ class RAGDefenseService:
                     "source": doc.metadata.get("source", "Unknown"),
                     "data_type": doc.metadata.get("data_type", "Unknown"),
                     "waf_type": doc.metadata.get("waf_type", "None"),
-                    "relevance_score": f"{score:.3f}"
+                    "relevance_score": f"{score:.3f}",
+                    "content": doc.page_content
                 })
             
             context = "\n\n".join(context_parts)
             
             return {
-                "context": context,
                 "sources": sources,
                 "rag_enabled": True,
                 "num_docs": len(reranked_docs),
                 "num_queries": len(queries),
-                "waf_filtered": waf_name is not None
+                "waf_filtered": waf_name is not None,
+                "context": context,
             }
             
         except Exception as e:
