@@ -6,6 +6,7 @@ With persistent vector store, auto-rebuild detection, and WAF-specific filtering
 import os
 import json
 import hashlib
+import tqdm
 from typing import List, Dict, Any, Optional
 from sentence_transformers import CrossEncoder
 from langchain_community.vectorstores import FAISS
@@ -289,7 +290,7 @@ class RAGDefenseService:
             model_kwargs=embedding_kwargs
         )
         
-        print("      Generating embeddings and building FAISS index...")
+        print(f"      Generating embeddings and building FAISS index... {embedding_kwargs}")
         self.vector_store = FAISS.from_documents(chunks, embeddings)
         
         print("      Saving vector store to disk...")

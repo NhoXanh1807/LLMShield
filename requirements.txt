@@ -12,3 +12,4 @@ langchain-text-splitters
 langchain-huggingface
 docx2txt
 pypdf
+faiss-gpu
