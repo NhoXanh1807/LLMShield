@@ -39,7 +39,7 @@ def generate_payload(adapter_path, vuln_type, constraint, model_id="Qwen/Qwen3.5
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=256,
+            max_new_tokens=2048,
             temperature=0.3,
             repetition_penalty=1.3,
             pad_token_id=tokenizer.eos_token_id

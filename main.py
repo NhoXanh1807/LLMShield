@@ -4,33 +4,19 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 print("importing libraries...")
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import traceback
+import ngrok
+import json
+import threading
+from config import Config
+from datetime import datetime, timezone, timedelta
+from llm.interfaces import AttackLLMInterface
+from llm.model_versions.simulator.model import SimulateModel
+from llm.model_versions.gemma2_2b.model import Gemma2_2B
+from llm.model_versions.qwen35_4b.model import Qwen35_4B
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-import ngrok
-import time
-from datetime import datetime, timezone, timedelta
-import json
-from config import Config
-from llm.interfaces import AttackLLMInterface
-import threading
-
-
-def load_model(model_name, hf_token) -> AttackLLMInterface:
-    if model_name == "FAKE":
-        from llm.model_versions.simulator.model import SimulateModel
-        model = SimulateModel(hf_token, load_immediately=True)
-    elif model_name == "GEMMA_2B":
-        from llm.model_versions.gemma2_2b.model import Gemma2_2B
-        model = Gemma2_2B(hf_token, load_immediately=True)
-    elif model_name == "QWEN_4B":
-        from llm.model_versions.qwen35_4b.model import Qwen35_4B
-        model = Qwen35_4B(hf_token, load_immediately=True)
-    else:
-        print(f"Model {model_name} not found.")
-        exit(1)
-    return model
 
 
 def generate_response(model: AttackLLMInterface, data: dict) -> str:
@@ -45,11 +31,9 @@ def generate_response(model: AttackLLMInterface, data: dict) -> str:
     )
     return response
 
-
 def build_prompt(model: AttackLLMInterface, data: dict) -> str:
     success, prompt = model.build_prompt(data)
     return prompt
-
 
 def generate_payload(model: AttackLLMInterface, data: dict) -> str:
     return model.generate_payload(data)
@@ -111,6 +95,7 @@ def rag_retrieve(data: dict) -> str:
             "message": str(e)
         }, ensure_ascii=False)
 
+
 class LLMServer(BaseHTTPRequestHandler):
     def now(self):
         return datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d %H:%M:%S")
@@ -138,13 +123,13 @@ class LLMServer(BaseHTTPRequestHandler):
             print(json.dumps(data, indent=4, ensure_ascii=False))
             
             if action == "generate":
-                response = generate_response(model, data)
+                response = generate_response(Config.MODEL, data)
             elif action == "build_prompt":
-                response = build_prompt(model, data)
+                response = build_prompt(Config.MODEL, data)
             elif action == "generate_payload":
-                response = generate_payload(model, data)
+                response = generate_payload(Config.MODEL, data)
             elif action == "rag_retrieve":
-                response = rag_retrieve(model, data)
+                response = rag_retrieve(data)
             else:
                 response = f"Error: Unknown action '{action}'"
             print(f"[{self.now()}] - Response:")
@@ -160,46 +145,77 @@ class LLMServer(BaseHTTPRequestHandler):
             self.send_error(500, str(e))
 
 
-if __name__ == "__main__":
-    print("Config model name :", Config.MODEL_NAME)
+def load_HF_token():
+    """Load HF token to Config"""
     # Load HF token from command line argument or file
+    hf_token = None
     if len(sys.argv) >= 2:
-        Config.HF_TOKEN = sys.argv[1]
+        hf_token = sys.argv[1]
         with open("hf_token.txt", "w") as f:
-            f.write(Config.HF_TOKEN)
+            f.write(hf_token)
     else:
         with open("hf_token.txt", "r") as f:
-            Config.HF_TOKEN = f.read().strip()
-    
+            hf_token = f.read().strip()
     # Validate HF token
-    if not Config.HF_TOKEN:
+    if not hf_token:
         print("HF_TOKEN not provided.")
         exit(1)
-    
-    model = load_model(Config.MODEL_NAME, Config.HF_TOKEN)
-    httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
-    
-    # NGROK
-    ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
-    listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
-    ADDRESS = listener.url()
-    print(f"NGROK: {Config.HOST_NAME}:{Config.PORT} -> {ADDRESS}")
+    return hf_token
 
-    # Start HTTPServer
-    def run_server():
+
+MODEL_LOADERS = {
+    "FAKE": SimulateModel,
+    "GEMMA_2B": Gemma2_2B,
+    "QWEN_4B": Qwen35_4B
+}
+
+
+def load_model(hf_token) -> AttackLLMInterface:
+    print(f"Available models:", list(MODEL_LOADERS.keys()))
+    print("Enter model name: ", end="")
+    model_name = input().strip()
+    if model_name not in MODEL_LOADERS:
+        print(f"Model {model_name} not found.")
+        exit(1)
+    
+    model = MODEL_LOADERS[model_name](hf_token, load_immediately=True)
+    return model
+
+
+def main():
+    try:
+        # Initialize
+        Config.HF_TOKEN = load_HF_token()
+        Config.MODEL = load_model(Config.HF_TOKEN)
+        
+        # Start HTTPServer
+        httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
+        def run_server():
+            try:
+                httpd.serve_forever()
+            except Exception as e:
+                traceback.print_exc()
+        thread = threading.Thread(target=run_server)
+        thread.start()
+        
+        # NGROK port forwarding
+        ngrok.set_auth_token(Config.NGROK_AUTHTOKEN)
+        listener = ngrok.forward(addr=f"{Config.HOST_NAME}:{Config.PORT}", domain=Config.NGROK_DOMAIN)
+        ADDRESS = listener.url()
+        print(f"NGROK: {Config.HOST_NAME}:{Config.PORT} -> {ADDRESS}")
+
+        # Handle exit command
         try:
-            httpd.serve_forever()
-        except Exception as e:
-            traceback.print_exc()
-            print(f"Server error: {e}")
-    thread = threading.Thread(target=run_server)
-    thread.start()
+            while input("Type 'exit' to stop server: ").strip() != "exit":
+                pass
+        except Exception:
+            pass
+        
+        print("Shutting down server...")
+        httpd.shutdown()
+        thread.join()
+        print("Server stopped. Exiting.")
+    except KeyboardInterrupt:
+        pass
 
-    while True:
-        cmd = input("Type 'exit' to stop server: ")
-        if cmd.strip() == "exit":
-            httpd.shutdown()
-            break
-
-    thread.join()
-    print("Server stopped. Exiting.")
+main()
