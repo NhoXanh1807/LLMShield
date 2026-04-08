@@ -507,6 +507,9 @@ class RAGDefenseService:
         """
         result = {
             "rag_enabled": self.enable_rag,
+            "num_queries": 0,
+            "num_docs_all": 0,
+            "num_docs_filtered": 0,
             "sources": [],
             "context": "",
         }
@@ -589,11 +592,8 @@ class RAGDefenseService:
             reranked_results = self.reranker.rerank(primary_query, filtered_docs, top_k=final_k)
             
             # Build context
-            context_parts = []
             sources = []
-            
             for i, (doc, score) in enumerate(reranked_results):
-                context_parts.append(f"[Reference {i+1}]\n{doc.page_content}")
                 sources.append({
                     "source": doc.metadata.get("source", "Unknown"),
                     "data_type": doc.metadata.get("data_type", "Unknown"),
@@ -601,8 +601,6 @@ class RAGDefenseService:
                     "relevance_score": f"{score:.3f}",
                     "content": doc.page_content
                 })
-            context = "\n\n".join(context_parts)
-            result["context"] = context
             result["sources"] = sources
             return result
             
