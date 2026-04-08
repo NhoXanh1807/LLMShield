@@ -46,7 +46,7 @@ class Qwen35_4B(AttackLLMInterface):
             dtype=torch.bfloat16,
             trust_remote_code=True
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, trust_remote_code=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.BASE_MODEL, token=self.hf_token, trust_remote_code=True)
         self.tokenizer.pad_token = self.tokenizer.pad_token or self.tokenizer.eos_token
         
         # Prepare adapter paths

@@ -124,6 +124,9 @@ class LLMServer(BaseHTTPRequestHandler):
             params = parse_qs(parsed_url.query)
             post_body = self.rfile.read(content_len).decode("utf-8")
             data = json.loads(post_body)
+            for key in params:
+                if key not in data:
+                    data[key] = params[key][0] if len(params[key]) == 1 else params[key]
             
             action = params.get("action", [None])[0]
             print(f"[{self.now()}] - {self.command} : '{self.path}'")
