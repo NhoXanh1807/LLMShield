@@ -1,122 +1,113 @@
-https://github.com/NhoXanh1807/LLMShield
-https://github.com/NhoXanh1807/LLM4WAF
 
-## Hướng dẫn chạy repo
+# LLMShield - Hướng dẫn sử dụng & phát triển (2026)
 
-1. Khuyến nghị sử dụng python-venv
+## 1. Hướng dẫn chạy repo
+
+1. **Tạo môi trường ảo (python-venv):**
 ```sh
-python3 -m venv .venv
+python -m venv .venv
 # Linux/MacOS
 source .venv/bin/activate
 # Windows
 .venv/Scripts/activate
 ```
 
-2. Kiểm tra cài đặt đủ thư viện trong `requirements.txt`
+2. **Cài đặt thư viện:**
 ```sh
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-3. Kiểm tra cấu hình lựa chọn model để khởi chạy trong file `config.py`
-
-4. Chuẩn bị HuggingFace token:
-- Cách 1: Tạo file `hf_token.txt` chứa HuggingFace access token
-- Cách 2: Truyền hf_token qua arguments khi chạy 
+3. **Chuẩn bị HuggingFace token:**
+   - Cách 1: Tạo file `hf_token.txt` chứa HuggingFace access token.
+   - Cách 2: Truyền hf_token qua arguments khi chạy:
 ```sh
-python3 main.py {HF_TOKEN}
+python main.py {HF_TOKEN}
 ```
 
-5. Chạy hệ thống:
+4. **Chạy hệ thống:**
 ```sh
-python3 main.py
-# Hoặc
-python3 main.py {HF_TOKEN}
+python main.py
+# hoặc
+python main.py {HF_TOKEN}
+```
+Khi khởi động sẽ yêu cầu nhập tên model (FAKE, GEMMA_2B, QWEN_4B).
+
+5. **API endpoint:**
+   - Server HTTP chạy tại `http://127.0.0.1:89/` (hoặc domain ngrok nếu cấu hình).
+   - Các action hỗ trợ: `generate`, `build_prompt`, `generate_payload`, `rag_retrieve`.
+
+**Ví dụ CURL:**
+```sh
+curl -X POST "http://127.0.0.1:89/llm?action=generate&adapter_name=phase1&max_new_tokens=128&temperature=0.7" -d '{"prompt": "day la prompt ne"}'
 ```
 
-6. Sử dụng hệ thống
-
-***CURL***
-```sh
-curl -X POST "http://api.akng.io.vn:89/llm?adapter_name=phase1&max_new_tokens=128&temperature=0.7" -d "day la prompt ne"
-
-
-{"success":true,"message":"success","data":"Simulated response to: day la prompt ne"}
-```
-
-***Python requests***
+**Ví dụ Python requests:**
 ```python
 import requests
-adapter_name = "phase1"
-max_new_tokens = "128"
-temperature = "0.7"
-res = requests.post(f"http://api.akng.io.vn:89/llm?adapter_name={adapter_name}&max_new_tokens={max_new_tokens}&temperature={temperature}", data="day la prompt ne")
+data = {"prompt": "day la prompt ne"}
+res = requests.post("http://127.0.0.1:89/llm?action=generate&adapter_name=phase1&max_new_tokens=128&temperature=0.7", json=data)
 print(res.text)
 ```
 
-# LLMShield - Hướng dẫn phát triển và mở rộng dự án
-
-## Mục tiêu thiết kế
-Repo này được thiết kế để mọi phiên bản model đều có thể sử dụng chung một interface chuẩn là `AttackLLMInterface` (định nghĩa trong file `/interfaces.py`). Nhờ đó, hệ thống có thể dễ dàng tích hợp, thử nghiệm và sử dụng bất kỳ model mới nào chỉ bằng cách tuân thủ interface này, mà không cần sửa code lõi.
-
-
-## Cấu trúc thư mục dự án
+## 2. Cấu trúc thư mục dự án (chuẩn hóa)
 ```
 LLMShield/
 ├── main.py                  # ENTRY POINT : file khởi chạy
 ├── config.py                # CẤU HÌNH KHỞI CHẠY
-├── interfaces.py            # Định nghĩa interface, dataclass chung
 ├── requirements.txt         # Danh sách thư viện
-├── external_services.py     # API giao tiếp với Queue
-└── model_versions/          # Các phiên bản nghiên cứu models
-    ├── gemma2_2b/
-    │   ├── model.py         # MODEL INTERFACE : implement AttackLLMInterface
-    │   ├── scripts/         # Chứa documents, dataset, scripts preprocess, finetune, test, ... Mọi thứ liên quan đến quá trình phát triển model này.
-    │   └── adapters/        # Chứa adapters để sử dụng. 
-    ├── qwen25_3b/
-    │   ├── model.py
-    │   ├── scripts/
-    │   └── adapters/
-    └── ...(thêm model mới)...
-        ├── model.py
-        ├── scripts/
-        └── adapters/
+├── llm/
+│   ├── interfaces.py        # Định nghĩa interface, dataclass chung
+│   └── model_versions/
+│       ├── gemma2_2b/
+│       │   ├── model.py         # Implement AttackLLMInterface
+│       │   ├── scripts/         # Tài liệu, dataset, script phát triển
+│       │   └── adapters/        # Các adapter, checkpoint
+│       ├── qwen35_4b/
+│       │   ├── model.py
+│       │   ├── scripts/
+│       │   └── adapters/
+│       ├── simulator/
+│       │   └── model.py         # Model giả lập
+│       └── ...(thêm model mới)...
+├── rag/
+│   ├── rag_service.py       # RAG service cho rule generation
+│   └── docs/                # Tài liệu, rule, cheat sheet
+└── ...
 ```
 
-## Nguyên tắc phát triển
-1. Với mỗi nguyên cứu model mới chúng ta sẽ tạo một thư mục mới trong `model_versions`
-2. Các file làm việc trong lúc phát triển model, ví dụ như datasets, preprocessing scripts, finetuning scripts, test scripts, ... đều phải đặt gọn trong thư mục `scripts`. Thư mục `scripts` là nơi duy nhất được lộn xộn.
-3. Các **adapters** kết quả sau khi finetuning, dùng để test này kia thì phải đặt trong thư mục `adapters`.
-4. Mỗi model version mình phải thiết kế một file `model.py`, khai báo một class mới, implement interface `AttackLLMInterface` để entry point file `main.py` có thể sử dụng model mới này thông qua interface.
-
+## 3. Interface chuẩn & phát triển model mới
+- Interface chuẩn: `llm/interfaces.py` (class `AttackLLMInterface`)
+- Mỗi model mới tạo class kế thừa interface này, ví dụ:
 ```python
-# /model_versions/new_model/interface.py
-from interfaces import AttackLLMInterface
-class NewModelClass(AttackLLMInterface):
-    def __init__(self, hf_token, load_immediately=False):
-        # ...
-    def load_model(self):
-        # ...
-    def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "phase1") -> str:
-        # ...
-    def build_prompt(self, args : dict) -> tuple[bool, str]:
-        # ...
-    def generate_payload(self, args : dict) -> str:
-        # ...
+from llm.interfaces import AttackLLMInterface
+class NewModel(AttackLLMInterface):
+    def __init__(self, hf_token, load_immediately=False): ...
+    def load_model(self): ...
+    def generate(self, prompt: str, max_new_tokens: int = 128, temperature: float = 0.7, adapter_name: str = "phase1") -> str: ...
+    def build_prompt(self, args: dict) -> tuple[bool, str]: ...
+    def generate_payload(self, args: dict) -> str: ...
 ```
 
-5. Khai báo tên model mới để load model trong hàm `load_model()` trong file `/main.py`
+## 4. Thêm model mới vào hệ thống
+- Đăng ký model mới trong `MODEL_LOADERS` ở `main.py`:
 ```python
-# /main.py
-def load_model(model_name, hf_token) -> AttackLLMInterface:
-    #...
-    elif model_name == "NEW_MODEL_NAME":
-        from model_versions.new_model.interface import NewModelClass
-        model = NewModelClass(hf_token, load_immediately=True)
-    #...
-    return model
+MODEL_LOADERS = {
+    "FAKE": SimulateModel,
+    "GEMMA_2B": Gemma2_2B,
+    "QWEN_4B": Qwen35_4B,
+    "NEW_MODEL": NewModel
+}
 ```
 
+## 5. Tích hợp RAG (Retrieval-Augmented Generation)
+- Module `rag/rag_service.py` hỗ trợ sinh rule/phản hồi nâng cao qua action `rag_retrieve`.
+- Có thể mở rộng docs, vector store, embedding, reranker theo nhu cầu.
 
-## Lưu ý
+## 6. Forwarding qua ngrok
+- Hệ thống tự động forwarding port qua ngrok nếu cấu hình `NGROK_AUTHTOKEN` và `NGROK_DOMAIN` trong `config.py`.
+
+## 7. Lưu ý phát triển
 - Không sửa đổi code lõi trừ khi thực sự cần thiết.
-- Đảm bảo tuân thủ interface.
+- Đảm bảo tuân thủ interface chuẩn.
+- Tài liệu, dataset, script phát triển để trong `scripts/` của từng model.
+- Adapter, checkpoint để trong `adapters/`.
