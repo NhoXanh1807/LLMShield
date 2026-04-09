@@ -511,11 +511,9 @@ class RAGDefenseService:
             "num_docs_all": 0,
             "num_docs_filtered": 0,
             "sources": [],
-            "context": "",
         }
         if not self.enable_rag:
             return result
-        
         
         try:
             queries = self._generate_query_variants(attack_type, waf_name, bypassed_payloads)
@@ -609,7 +607,7 @@ class RAGDefenseService:
             result["error"] = str(e)
             return result
     
-    def enhance_defense_prompt(self, waf_info: dict, bypassed_payloads: list, 
+    def enhance_defense_prompt(self, waf_name: str, bypassed_payloads: list, 
             bypassed_instructions: list, 
             base_user_prompt: str,
             filter_rules_only: bool = True
@@ -618,7 +616,7 @@ class RAGDefenseService:
         Enhance defense generation prompt with RAG context
         
         Args:
-            waf_info: WAF information
+            waf_name: WAF name
             bypassed_payloads: List of bypassed payloads
             bypassed_instructions: Instructions for each payload
             base_user_prompt: Original user prompt from get_blue_team_user_prompt
@@ -631,7 +629,7 @@ class RAGDefenseService:
         
         rag_result = self.get_relevant_context(
             attack_type=attack_type,
-            waf_info=waf_info,
+            waf_name=waf_name,
             bypassed_payloads=bypassed_payloads,
             filter_rules_only=filter_rules_only
         )
