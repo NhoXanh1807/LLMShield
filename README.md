@@ -33,12 +33,13 @@ python main.py {HF_TOKEN}
 Khi khởi động sẽ yêu cầu nhập tên model (FAKE, GEMMA_2B, QWEN_4B).
 
 5. **API endpoint:**
-   - Server HTTP chạy tại `http://127.0.0.1:89/` (hoặc domain ngrok nếu cấu hình).
+   - Server HTTP chạy tại `https://overrigged-savingly-nelle.ngrok-free.dev/` theo cấu hình NGROK.
    - Các action hỗ trợ: `generate`, `build_prompt`, `generate_payload`, `rag_retrieve`.
+   - Server sẽ ưu tiên chấp nhận các params trong json body request trước, sau đó đến param trong query string
 
 **Ví dụ CURL:**
 ```sh
-curl -X POST "http://127.0.0.1:89/llm?action=generate&adapter_name=phase1&max_new_tokens=128&temperature=0.7" -d '{"prompt": "day la prompt ne"}'
+curl -X POST "http://127.0.0.1:89/llm?action=generate&adapter_name=phase1&max_new_tokens=128&temperature=0.7&prompt=this_prompt_will_not_be_used" -d '{"prompt": "day moi la prompt ne"}'
 ```
 
 **Ví dụ Python requests:**
@@ -89,24 +90,28 @@ class NewModel(AttackLLMInterface):
 ```
 
 ## 4. Thêm model mới vào hệ thống
-- Đăng ký model mới trong `MODEL_LOADERS` ở `main.py`:
+- Đăng ký model mới trong `MODEL_LOADERS` ở `config.py`:
 ```python
-MODEL_LOADERS = {
-    "FAKE": SimulateModel,
-    "GEMMA_2B": Gemma2_2B,
-    "QWEN_4B": Qwen35_4B,
-    "NEW_MODEL": NewModel
-}
+from llm.model_versions.simulator.model import SimulateModel
+from llm.model_versions.gemma2_2b.model import Gemma2_2B
+from llm.model_versions.qwen35_4b.model import Qwen35_4B
+from llm.model_versions.new_model.model import NewModel
+
+class Config:
+    ...
+    MODEL_LOADERS = {
+        "FAKE": SimulateModel,
+        "GEMMA_2B": Gemma2_2B,
+        "QWEN_4B": Qwen35_4B,
+        "NEW_MODEL": NewModel
+    }
+    ...
 ```
 
 ## 5. Tích hợp RAG (Retrieval-Augmented Generation)
-- Module `rag/rag_service.py` hỗ trợ sinh rule/phản hồi nâng cao qua action `rag_retrieve`.
-- Có thể mở rộng docs, vector store, embedding, reranker theo nhu cầu.
+- Mọi cập nhật, nâng cấp mã nguồn của RAG chỉ được phép nằm gói gọn trong thư mục `/rag`, và phải đảm bảo hàm `rag_retrieve()` trong `main.py` sẽ xử lý và trả về dữ liệu như mong đợi dưới dạng JSON String (not multi-line JSON).
 
-## 6. Forwarding qua ngrok
-- Hệ thống tự động forwarding port qua ngrok nếu cấu hình `NGROK_AUTHTOKEN` và `NGROK_DOMAIN` trong `config.py`.
-
-## 7. Lưu ý phát triển
+## 6. Lưu ý phát triển
 - Không sửa đổi code lõi trừ khi thực sự cần thiết.
 - Đảm bảo tuân thủ interface chuẩn.
 - Tài liệu, dataset, script phát triển để trong `scripts/` của từng model.

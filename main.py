@@ -12,9 +12,6 @@ import os
 from config import Config
 from datetime import datetime, timezone, timedelta
 from llm.interfaces import AttackLLMInterface
-from llm.model_versions.simulator.model import SimulateModel
-from llm.model_versions.gemma2_2b.model import Gemma2_2B
-from llm.model_versions.qwen35_4b.model import Qwen35_4B
 from rag.rag_service import get_rag_service
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
@@ -135,22 +132,15 @@ def load_HF_token():
     return hf_token
 
 
-MODEL_LOADERS = {
-    "FAKE": SimulateModel,
-    "GEMMA_2B": Gemma2_2B,
-    "QWEN_4B": Qwen35_4B
-}
-
-
 def load_model(hf_token) -> AttackLLMInterface:
-    print(f"Available models:", list(MODEL_LOADERS.keys()))
+    print(f"Available models:", list(Config.MODEL_LOADERS.keys()))
     print("Enter model name: ", end="")
     model_name = input().strip()
-    if model_name not in MODEL_LOADERS:
+    if model_name not in Config.MODEL_LOADERS:
         print(f"Model {model_name} not found.")
         exit(1)
     
-    model = MODEL_LOADERS[model_name](hf_token, load_immediately=True)
+    model = Config.MODEL_LOADERS[model_name](hf_token, load_immediately=True)
     return model
 
 
