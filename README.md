@@ -1,36 +1,54 @@
 
-# LLMShield - Hướng dẫn sử dụng & phát triển (2026)
+# LLMShield
 
-## 1. Hướng dẫn chạy repo
+Module này chạy những thành phần nặng như LLM và RAG, đóng vai trò làm External Service cho WebApp LLM4WAF. Yêu cầu chạy trên các thiết bị có GPU nhân CUDA. Bên dưới là hướng dẫn chạy ExternalService này.
 
-1. **Tạo môi trường ảo (python-venv):**
+## A. Hướng dẫn chạy repo
+
+-  Thuê máy ảo (khuyến nghị web `Vast.ai`) hoặc sử dụng máy cá nhân có GPU nhân CUDA.
+
 ```sh
+# 1. Tải repo về máy
+git clone https://github.com/NhoXanh1807/LLMShield
+
+
+# 2. Vào thư mục của repo LLMShield
+cd LLMShield
+# Tạo Virtual Enviroment
 python -m venv .venv
-# Linux/MacOS
+
+
+# 3. Kích hoạt VENV
+# - Linux/MacOS
 source .venv/bin/activate
-# Windows
+# - Windows
 .venv/Scripts/activate
+
+
+# 4. Cập nhật pip mới
+python -m pip install --upgrade pip
+
+
+# 5. Cài đặt thư viện
+pip install -r requirements.txt
+
+
+# 6. Chuẩn bị HF_TOKEN từ Huggingface
+# 7. Chạy dự án
+python main.py <HF_TOKEN>
+
+
+>importing libraries...
+>Available models: ['FAKE', 'GEMMA_2B', 'QWEN_4B']
+>Enter model name: 
+# 8. Nhập tên model LLM để chạy : khuyến nghị GEMMA_2B
+
+
+>NGROK: 127.0.0.1:89 -> https://overrigged-savingly-nelle.ngrok-free.dev
+>Type 'exit' to stop server: 
+# 9. Hiện như vậy là service đã chạy rồi nhé, nếu muốn tắt có thể nhập 'exit'
 ```
 
-2. **Cài đặt thư viện:**
-```sh
-python -m pip install -r requirements.txt
-```
-
-3. **Chuẩn bị HuggingFace token:**
-   - Cách 1: Tạo file `hf_token.txt` chứa HuggingFace access token.
-   - Cách 2: Truyền hf_token qua arguments khi chạy:
-```sh
-python main.py {HF_TOKEN}
-```
-
-4. **Chạy hệ thống:**
-```sh
-python main.py
-# hoặc
-python main.py {HF_TOKEN}
-```
-Khi khởi động sẽ yêu cầu nhập tên model (FAKE, GEMMA_2B, QWEN_4B).
 
 5. **API endpoint:**
    - Server HTTP chạy tại `https://overrigged-savingly-nelle.ngrok-free.dev/` theo cấu hình NGROK.
