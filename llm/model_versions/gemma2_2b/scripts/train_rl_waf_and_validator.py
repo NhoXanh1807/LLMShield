@@ -5,11 +5,11 @@ print("add_path=", path)
 sys.path.append(os.path.abspath(path))
 path = os.path.join(
     os.path.dirname(__file__), 
-    '..', #scripts
-    '..', #gemma2_2b
-    '..', #model_versions
-    '..', #llm
-    '..', #LLMShield
+    '../', #scripts
+    '../', #gemma2_2b
+    '../', #model_versions
+    '../', #llm
+    '../', #LLMShield
 )
 print("add_path=", path)
 sys.path.append(os.path.abspath(path))
