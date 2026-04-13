@@ -13,7 +13,7 @@ from config import Config
 from datetime import datetime, timezone, timedelta
 from llm.interfaces import AttackLLMInterface
 from rag.rag_service import get_rag_service
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
@@ -153,7 +153,7 @@ def main():
         get_rag_service(docs_folder=rag_docs_folder)
         
         # Start HTTPServer
-        httpd = HTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
+        httpd = ThreadingHTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
         def run_server():
             try:
                 httpd.serve_forever()
