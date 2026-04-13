@@ -10,10 +10,9 @@ sys.path.append(os.path.abspath(os.path.join(
     '..', #LLMShield
 )))
 
-from trl import PPOTrainer, PPOConfig
 import json
 from llm.model_versions.gemma2_2b.model import Gemma2_2B
-from transformers import AutoTokenizer, AutoModelForCausalLM
+# from transformers import AutoTokenizer, AutoModelForCausalLM
 from enum import Enum
 import payload_harmness_validator as pval
 import dvwa
@@ -51,6 +50,8 @@ def main():
     data_path = input("Path to train data (jsonl): ")
     train_data = load_train_data(data_path)
 
+    from trl.trainer import PPOTrainer
+    from trl import PPOConfig
     # PPO config
     ppo_config = PPOConfig(
         model_name=model.BASE_MODEL,
