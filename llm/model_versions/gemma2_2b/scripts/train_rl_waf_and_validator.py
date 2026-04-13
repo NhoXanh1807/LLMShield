@@ -1,18 +1,8 @@
 import sys
 import os
-path = os.path.dirname(__file__)
-print("add_path=", path)
-sys.path.append(os.path.abspath(path))
-path = os.path.join(
-    os.path.dirname(__file__), 
-    '../', #scripts
-    '../', #gemma2_2b
-    '../', #model_versions
-    '../', #llm
-    '../', #LLMShield
-)
-print("add_path=", path)
-sys.path.append(os.path.abspath(path))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
+print("add_path=", ROOT_PATH)
+sys.path.insert(0, ROOT_PATH)
 
 import json
 from llm.model_versions.gemma2_2b.model import Gemma2_2B
