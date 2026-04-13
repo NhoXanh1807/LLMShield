@@ -1,6 +1,6 @@
 import sys
 import os
-ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
 print("add_path=", ROOT_PATH)
 sys.path.insert(0, ROOT_PATH)
 
