@@ -13,3 +13,5 @@ langchain-huggingface
 docx2txt
 pypdf
 faiss-gpu-cu11
+trl
+sqlglot
