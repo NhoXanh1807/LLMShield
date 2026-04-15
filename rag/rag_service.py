@@ -440,24 +440,15 @@ class RAGDefenseService:
         queries = []
         
         attack_name = attack_type
-        queries.append(f"{attack_name} defense strategies and prevention")
+        queries.append(f"{attack_name} defense strategies and prevention for {waf_name}")
         
         if waf_name:
-            queries.append(f"{waf_name} {attack_name} protection rules")
+            queries.append(f"{waf_name} {attack_name} WAF rules syntax and configuration")
         
         if bypassed_payloads:
-            sample_payload = str(bypassed_payloads[0])[:100].lower()
-            
-            if "script" in sample_payload or "onerror" in sample_payload:
-                queries.append("XSS bypass techniques and mitigation")
-            elif "union" in sample_payload or "select" in sample_payload:
-                queries.append("SQL injection union-based attack prevention")
-            elif "or" in sample_payload and "=" in sample_payload:
-                queries.append("SQL injection boolean-based blind attack defense")
-            else:
-                queries.append(f"{attack_name} bypass techniques")
+            queries.append(f"{attack_name} bypass techniques against {waf_name}")
         
-        queries.append(f"security rules best practices {attack_name}")
+        queries.append(f"{waf_name} security rules best practices {attack_name}")
         
         return queries
     
@@ -516,6 +507,7 @@ class RAGDefenseService:
             return result
         
         try:
+            waf_name = self._extract_waf_name(waf_name)
             queries = self._generate_query_variants(attack_type, waf_name, bypassed_payloads)
             result["num_queries"] = len(queries)
             print(f"Generated {len(queries)} query variants for retrieval")
@@ -539,6 +531,10 @@ class RAGDefenseService:
             
             if waf_name:
                 print(f"WAF detected: {waf_name}")
+                all_retrieved_docs = [
+                    doc for doc in all_retrieved_docs
+                    if doc.metadata.get("waf_type") in [waf_name, "None"]
+                ]
             
             if filter_rules_only:
                 # Separate by data_type and waf_type
@@ -553,8 +549,7 @@ class RAGDefenseService:
                     if doc_data_type == "Rules" and waf_name and doc_waf_type == waf_name:
                         # WAF-specific rules (highest priority)
                         waf_specific_docs.append(doc)
-                    elif doc_data_type == "Rules":
-                        # General rules (medium priority)
+                    elif doc_data_type == "Rules" and (not waf_name or doc_waf_type == waf_name):
                         rules_docs.append(doc)
                     else:
                         # XSS/SQLi docs (lower priority)
