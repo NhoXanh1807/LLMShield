@@ -132,13 +132,7 @@ def load_HF_token():
     return hf_token
 
 
-def load_model(hf_token) -> AttackLLMInterface:
-    print(f"Available models:", list(Config.MODEL_LOADERS.keys()))
-    print("Enter model name: ", end="")
-    model_name = input().strip()
-    if model_name not in Config.MODEL_LOADERS:
-        print(f"Model {model_name} not found.")
-        exit(1)
+def load_model(hf_token, model_name) -> AttackLLMInterface:
     
     model = Config.MODEL_LOADERS[model_name](hf_token, load_immediately=True)
     return model
@@ -146,11 +140,24 @@ def load_model(hf_token) -> AttackLLMInterface:
 
 def main():
     try:
-        # Initialize
+        # Select model
+        print(f"Available models:", list(Config.MODEL_LOADERS.keys()))
+        print("Enter model name: ", end="")
+        model_name = input().strip()
+        if model_name not in Config.MODEL_LOADERS:
+            print(f"Model {model_name} not found.")
+            exit(1)
+        
+        # Load HF token
         Config.HF_TOKEN = load_HF_token()
-        Config.MODEL = load_model(Config.HF_TOKEN)
+        Config.MODEL = load_model(Config.HF_TOKEN, model_name)
+        
+        enable_rag = input("Enable RAG? (yes/no): ").strip().lower() in ["yes", "y"]
         rag_docs_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "rag", "docs")
-        get_rag_service(docs_folder=rag_docs_folder)
+        get_rag_service(
+            docs_folder=rag_docs_folder,
+            enable_rag=enable_rag
+        )
         
         # Start HTTPServer
         httpd = ThreadingHTTPServer((Config.HOST_NAME, Config.PORT), LLMServer)
