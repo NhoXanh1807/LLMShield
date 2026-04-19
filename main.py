@@ -147,12 +147,14 @@ def main():
         if model_name not in Config.MODEL_LOADERS:
             print(f"Model {model_name} not found.")
             exit(1)
+        enable_rag = input("Enable RAG? (yes/no): ").strip().lower() in ["yes", "y"]
+        
+        
         
         # Load HF token
         Config.HF_TOKEN = load_HF_token()
         Config.MODEL = load_model(Config.HF_TOKEN, model_name)
         
-        enable_rag = input("Enable RAG? (yes/no): ").strip().lower() in ["yes", "y"]
         rag_docs_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "rag", "docs")
         get_rag_service(
             docs_folder=rag_docs_folder,
