@@ -1,0 +1,306 @@
+{
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Actions of Rules.md": {
+    "filename": "Actions of Rules.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 9469,
+    "modified": 1776837302.1640728,
+    "hash": "beeea7fe1bbf2e928d92e0de344e9cad"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Cloudflare What are WAF Managed Rules.docx": {
+    "filename": "Cloudflare What are WAF Managed Rules.docx",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 60776,
+    "modified": 1776837302.1640728,
+    "hash": "3968dceef403d7184c187772b322554c"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Config Rule on Dashboard.docx": {
+    "filename": "Config Rule on Dashboard.docx",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 15393,
+    "modified": 1776837302.1640728,
+    "hash": "d6533d74880d90dba83f44e5a60914ef"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Expression of Rules.md": {
+    "filename": "Expression of Rules.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 3024,
+    "modified": 1776837302.1640728,
+    "hash": "d3b7cb70e0f83624b172347e2991d5dd"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Field References.md": {
+    "filename": "Field References.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 63486,
+    "modified": 1776837302.1640728,
+    "hash": "993aa4650816c2df306bad4242ce03b9"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Fields Overview.md": {
+    "filename": "Fields Overview.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 2355,
+    "modified": 1776837302.1640728,
+    "hash": "bfa07485f3b2fa99830214cfbfeca152"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Functions .md": {
+    "filename": "Functions .md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 32417,
+    "modified": 1776837302.1640728,
+    "hash": "821956d3057d03bc65aacd0cd9d6bbfb"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Operators of Rules.md": {
+    "filename": "Operators of Rules.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 13452,
+    "modified": 1776837302.1640728,
+    "hash": "4091bd068fb6873d644c53ee9e5214e0"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/Values of Rules.md": {
+    "filename": "Values of Rules.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 17855,
+    "modified": 1776837302.1640728,
+    "hash": "2b310b678f971ffbbd16a18ce6528ed9"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/Making Rules.md": {
+    "filename": "Making Rules.md",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 11999,
+    "modified": 1776837302.1640728,
+    "hash": "78b907afac3a21b30929d12e70d842d0"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/Rules for SQL Injection and XSS .txt": {
+    "filename": "Rules for SQL Injection and XSS .txt",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 40467,
+    "modified": 1776837302.1640728,
+    "hash": "e507fb6bea5623ec7fb531addf01becf"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/technical_note_waf_rule_writing_guide_2026-02-23-20-31-45.pdf": {
+    "filename": "technical_note_waf_rule_writing_guide_2026-02-23-20-31-45.pdf",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 414145,
+    "modified": 1776837302.1680727,
+    "hash": "de29bc5295fd48a118bc5ad33709f210"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/AWS/Expression of Rules.docx": {
+    "filename": "Expression of Rules.docx",
+    "data_type": "Rules",
+    "waf_type": "AWS",
+    "size": 17666,
+    "modified": 1776837302.1040733,
+    "hash": "40d85464813393cad0f0a614e1e801ea"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/AWS/General about AWS WAF.pdf": {
+    "filename": "General about AWS WAF.pdf",
+    "data_type": "Rules",
+    "waf_type": "AWS",
+    "size": 12934481,
+    "modified": 1776837302.1600728,
+    "hash": "b6668e6ad1513fd8989beeb7014c46c4"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/Basic Configurations.docx": {
+    "filename": "Basic Configurations.docx",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 22693,
+    "modified": 1776837302.1680727,
+    "hash": "ea13c93c2d9474d1d40c3f2ccc43a77b"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/Internal Rules.docx": {
+    "filename": "Internal Rules.docx",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 17882,
+    "modified": 1776837302.1680727,
+    "hash": "b4b35eaa72e84fda34b626a50f814600"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/Naxsi Directive.docx": {
+    "filename": "Naxsi Directive.docx",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 22952,
+    "modified": 1776837302.1680727,
+    "hash": "af2505ac76fc05a595007c537a664469"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/Naxsi Rules.docx": {
+    "filename": "Naxsi Rules.docx",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 18711,
+    "modified": 1776837302.1680727,
+    "hash": "6c6aace571d7599defdb6c150dfbf9f1"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/A Study on Advanced XSS Vectors.docx": {
+    "filename": "A Study on Advanced XSS Vectors.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 377024,
+    "modified": 1776837302.1840725,
+    "hash": "6dbe293de4d4800f12ee7cfcde92dabd"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/DOM-based XSS - The Hidden Threat.docx": {
+    "filename": "DOM-based XSS - The Hidden Threat.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 22324,
+    "modified": 1776837302.1840725,
+    "hash": "e53cd1c0f0c07b934e2d2a99362bf629"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/Excess XSS - Comprehensive Guide to Types.docx": {
+    "filename": "Excess XSS - Comprehensive Guide to Types.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 219459,
+    "modified": 1776837302.1840725,
+    "hash": "25dac39905270a2d9812f27aeb7cdf84"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/MDN Web Docs - Cross-site scripting.docx": {
+    "filename": "MDN Web Docs - Cross-site scripting.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 30749,
+    "modified": 1776837302.1840725,
+    "hash": "eb2ed33d6e4b5bcbe4050f7c4422dbdf"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/OWASP Top 10 Cross-Site Scripting (XSS).docx": {
+    "filename": "OWASP Top 10 Cross-Site Scripting (XSS).docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 26488,
+    "modified": 1776837302.1840725,
+    "hash": "f8349084e7219ef54bb95f4fd2439849"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/OWASP XSS Filter Evasion Cheat Sheet.docx": {
+    "filename": "OWASP XSS Filter Evasion Cheat Sheet.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 57669,
+    "modified": 1776837302.1840725,
+    "hash": "1db6b99e4af2a15c539f472838405da3"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/OWASP XSS Prevention Cheat Sheet.docx": {
+    "filename": "OWASP XSS Prevention Cheat Sheet.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 28413,
+    "modified": 1776837302.1840725,
+    "hash": "aac746bf23d79c84c609e8dced919353"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/PortSwigger Academy - What is XSS.docx": {
+    "filename": "PortSwigger Academy - What is XSS.docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 25418,
+    "modified": 1776837302.1840725,
+    "hash": "1ba60ae419474c09ce766f98518e2ffb"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/Securing Modern Frameworks (React, Angular, Vue).docx": {
+    "filename": "Securing Modern Frameworks (React, Angular, Vue).docx",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 1563630,
+    "modified": 1776837302.1920724,
+    "hash": "ee8cf986641c3f99757475ee786b86c0"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/XSS-CheatSeat-Studocu.pdf": {
+    "filename": "XSS-CheatSeat-Studocu.pdf",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 515772,
+    "modified": 1776837302.1960723,
+    "hash": "50384d33fe449bd159024941cebf9d2f"
+  },
+  "/workspace/LLMShield/rag/docs/XSS/XSSSurvey_GR.pdf": {
+    "filename": "XSSSurvey_GR.pdf",
+    "data_type": "XSS",
+    "waf_type": "None",
+    "size": 414398,
+    "modified": 1776837302.1960723,
+    "hash": "026643516dcd9c4cbd5c35ed76a987dc"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/Advanced SQL Injection in PytonDjangoORM.docx": {
+    "filename": "Advanced SQL Injection in PytonDjangoORM.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 25866,
+    "modified": 1776837302.1680727,
+    "hash": "e86613c61d7555fc663c969562f02adf"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/Blind SQL Injection (Inferential SQLi).docx": {
+    "filename": "Blind SQL Injection (Inferential SQLi).docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 18212,
+    "modified": 1776837302.1680727,
+    "hash": "7a1f9fe741977b6cfbb5e92f38ca4aed"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/Microsoft Learn SQL Injection Attacks.docx": {
+    "filename": "Microsoft Learn SQL Injection Attacks.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 29881,
+    "modified": 1776837302.1680727,
+    "hash": "1eab6707783ee52e430a88e0a25ad978"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/OWASP SQL Injection Prevention Cheat Sheet.docx": {
+    "filename": "OWASP SQL Injection Prevention Cheat Sheet.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 24356,
+    "modified": 1776837302.1680727,
+    "hash": "faa635dbdd4fab49517913c6a0126292"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/OWASP Top 10 SQL Injection.docx": {
+    "filename": "OWASP Top 10 SQL Injection.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 21542,
+    "modified": 1776837302.1680727,
+    "hash": "0fd5da97da804c3d7275f1d8f6229acb"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/PortSwigger Academy What is SQL Injection.docx": {
+    "filename": "PortSwigger Academy What is SQL Injection.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 30492,
+    "modified": 1776837302.1680727,
+    "hash": "965bfe2ae4b16aadb92bf5aae8dd1ab5"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/SQL Injection Bypassing WAF.docx": {
+    "filename": "SQL Injection Bypassing WAF.docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 1775358,
+    "modified": 1776837302.1760726,
+    "hash": "25bdd359f900d542d1b819081a1fc0ea"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/SQL Injection Cheat Sheet (Database Specific).docx": {
+    "filename": "SQL Injection Cheat Sheet (Database Specific).docx",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 159826,
+    "modified": 1776837302.1760726,
+    "hash": "a07cc5915bf6aa4f3f13dcdbbd69bd3a"
+  },
+  "/workspace/LLMShield/rag/docs/SQLi/Static Analysis for Detecting SQLi in Java Applications.pdf": {
+    "filename": "Static Analysis for Detecting SQLi in Java Applications.pdf",
+    "data_type": "SQLi",
+    "waf_type": "None",
+    "size": 435402,
+    "modified": 1776837302.1800725,
+    "hash": "ed90df5755ff31516f9b99d15fc2266d"
+  }
+}
