@@ -140,15 +140,24 @@ def load_model(hf_token, model_name) -> AttackLLMInterface:
 
 def main():
     try:
+        print("python main.py [HF_TOKEN] [MODEL_NAME] [ENABLE_RAG:y/n]")
         # Select model
-        print(f"Available models:", list(Config.MODEL_LOADERS.keys()))
-        print("Enter model name: ", end="")
-        model_name = input().strip()
+        if len(sys.argv) >= 3:
+            model_name = sys.argv[2]
+            print(f"Using model from command line argument: {model_name}")
+        else:
+            print(f"Available models:", list(Config.MODEL_LOADERS.keys()))
+            print("Enter model name: ", end="")
+            model_name = input().strip()
         if model_name not in Config.MODEL_LOADERS:
             print(f"Model {model_name} not found.")
             exit(1)
-        enable_rag = input("Enable RAG? (yes/no): ").strip().lower() in ["yes", "y"]
         
+        if len(sys.argv) >= 4:
+            enable_rag = sys.argv[3].strip().lower() in ["yes", "y", "true", "1"]
+            print(f"Enable RAG: {enable_rag} (from command line argument)")
+        else:
+            enable_rag = input("Enable RAG? (yes/no): ").strip().lower() in ["yes", "y", "true", "1"]
         
         
         # Load HF token
