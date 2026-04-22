@@ -84,9 +84,11 @@ class Gemma2_2B(AttackLLMInterface):
         self.model.set_adapter(adapter_name)
         
         messages = [{"role": "user", "content": prompt}]
-        print(f"Messages form prompt: \n\t{json.dumps(messages, indent=2).replace('\n', '\n\t')}")
+        formatted_messages = json.dumps(messages, indent=2).replace("\n", "\n\t")
+        print(f"Messages from prompt: \n\t{formatted_messages}")
         formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        print(f"Formatted prompt:\n\t{formatted_prompt.replace('\n', '\n\t')}")
+        indented_prompt = formatted_prompt.replace("\n", "\n\t")
+        print(f"Formatted prompt:\n\t{indented_prompt}")
         inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
         input_length = inputs.input_ids.shape[1]
         eos_id = self.tokenizer.eos_token_id
