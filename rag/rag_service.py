@@ -457,22 +457,18 @@ class RAGDefenseService:
         if not waf_name:
             return None
         
-        waf_name = waf_name.lower()
-        
         # Map WAF names to WAF_type
         waf_mapping = {
             "cloudflare": "Cloudflare",
-            "cloudflare waf": "Cloudflare",
             "cloud flare": "Cloudflare",
-            "modsecurity": "ModSecurity",
             "mod_security": "ModSecurity",
+            "modsec": "ModSecurity",
             "aws": "AWS",
-            "aws waf": "AWS",
             "naxsi": "Naxsi"
         }
         
         for key, value in waf_mapping.items():
-            if key in waf_name:
+            if key.lower() in waf_name.lower():
                 return value
         
         return None
@@ -510,6 +506,7 @@ class RAGDefenseService:
             waf_name = self._extract_waf_name(waf_name)
             queries = self._generate_query_variants(attack_type, waf_name, bypassed_payloads)
             result["num_queries"] = len(queries)
+            result["queries"] = queries
             print(f"Generated {len(queries)} query variants for retrieval")
             for query in queries:
                 print(f"\t- {query}")

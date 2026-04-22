@@ -86,7 +86,7 @@ class VerifiedAttackResult:
             "status_code": self.status_code,
             "status": self.status.value,
             "blocked": self.blocked,
-            "bypassed": self.bypassed,
+            "is_bypassed": self.is_bypassed,
             "exploited": self.exploited,
             "evidence": self.evidence,
             "payload": self.payload,

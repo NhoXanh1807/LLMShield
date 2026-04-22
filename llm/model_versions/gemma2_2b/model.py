@@ -151,7 +151,7 @@ class Gemma2_2B(AttackLLMInterface):
         history_str = ""
         tried_techniques = set()
         for i, h in enumerate(probe_history):
-            history_str += f"{i+1}. Payload: `{h['payload']}` (Technique: {h['technique']}) -> RESULT: {'BYPASSED' if h['bypassed'] else 'BLOCKED'}\n"
+            history_str += f"{i+1}. Payload: `{h['payload']}` (Technique: {h['technique']}) -> RESULT: {'BYPASSED' if h['is_bypassed'] else 'BLOCKED'}\n"
             tried_techniques.add(h['technique'])
 
         # Pick next technique: prefer one not yet tried
