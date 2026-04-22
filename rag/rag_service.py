@@ -18,48 +18,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 import torch
 
 
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-
-def _resolve_repo_path(path: str) -> str:
-    """Resolve a path against the repository root."""
-    if os.path.isabs(path):
-        return os.path.abspath(path)
-    return os.path.abspath(os.path.join(REPO_ROOT, path))
-
-
-def _split_path_parts(path: str) -> List[str]:
-    """Split a path into normalized parts for suffix matching."""
-    normalized_path = os.path.normpath(path)
-    drive, tail = os.path.splitdrive(normalized_path)
-    parts = [part for part in tail.split(os.sep) if part and part != "."]
-    if drive:
-        parts.insert(0, drive)
-    return parts
-
-
-def _to_repo_relative(path: str, anchor_relative: Optional[str] = None) -> str:
-    """Convert an absolute path to a repo-relative path when possible."""
-    normalized_path = os.path.normpath(path)
-    if not os.path.isabs(normalized_path):
-        return normalized_path
-
-    repo_relative = os.path.relpath(normalized_path, REPO_ROOT)
-    if not repo_relative.startswith(".."):
-        return os.path.normpath(repo_relative)
-
-    if anchor_relative:
-        anchor_parts = [part.lower() for part in _split_path_parts(anchor_relative)]
-        path_parts = _split_path_parts(normalized_path)
-        path_parts_lower = [part.lower() for part in path_parts]
-        max_start = len(path_parts) - len(anchor_parts) + 1
-        for start_index in range(max_start):
-            if path_parts_lower[start_index:start_index + len(anchor_parts)] == anchor_parts:
-                return os.path.normpath(os.path.join(*path_parts[start_index:]))
-
-    return normalized_path
-
-
 class CrossEncoderReranker:
     """Re-rank retrieved documents using cross-encoder"""
     
@@ -83,31 +41,10 @@ class CrossEncoderReranker:
 class DocumentIndexManager:
     """Manages document indexing and change detection"""
     
-    def __init__(self, docs_folder: str, index_file: str = ".rag_index.json", repo_root: str = REPO_ROOT):
-        self.repo_root = os.path.abspath(repo_root)
-        self.docs_folder = _resolve_repo_path(docs_folder)
-        self.docs_folder_relative = _to_repo_relative(self.docs_folder)
-        self.index_file = os.path.join(self.docs_folder, index_file)
+    def __init__(self, docs_folder: str, index_file: str = ".rag_index.json"):
+        self.docs_folder = docs_folder
+        self.index_file = os.path.join(docs_folder, index_file)
         self.current_index = {}
-
-    def _to_document_relative_path(self, filepath: str) -> str:
-        """Convert a document path to a repo-relative path under the docs folder."""
-        return _to_repo_relative(filepath, anchor_relative=self.docs_folder_relative)
-
-    def _normalize_loaded_index(self, index: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-        """Normalize stored index keys and metadata to repo-relative paths."""
-        normalized_index = {}
-
-        for stored_path, metadata in index.items():
-            normalized_path = self._to_document_relative_path(stored_path)
-            normalized_metadata = dict(metadata)
-            if "file_path" in normalized_metadata:
-                normalized_metadata["file_path"] = self._to_document_relative_path(normalized_metadata["file_path"])
-            else:
-                normalized_metadata["file_path"] = normalized_path
-            normalized_index[normalized_path] = normalized_metadata
-
-        return normalized_index
     
     def _compute_file_hash(self, filepath: str) -> str:
         """Compute MD5 hash of file content"""
@@ -156,15 +93,13 @@ class DocumentIndexManager:
                         stats = os.stat(file_path)
                         file_hash = self._compute_file_hash(file_path)
                         
-                        relative_file_path = self._to_document_relative_path(file_path)
-                        index[relative_file_path] = {
+                        index[file_path] = {
                             "filename": filename,
                             "data_type": data_type,
                             "waf_type": waf_type,
                             "size": stats.st_size,
                             "modified": stats.st_mtime,
-                            "hash": file_hash,
-                            "file_path": relative_file_path
+                            "hash": file_hash
                         }
             else:
                 # XSS and SQLi folders have no subfolders
@@ -179,15 +114,13 @@ class DocumentIndexManager:
                     stats = os.stat(file_path)
                     file_hash = self._compute_file_hash(file_path)
                     
-                    relative_file_path = self._to_document_relative_path(file_path)
-                    index[relative_file_path] = {
+                    index[file_path] = {
                         "filename": filename,
                         "data_type": data_type,
                         "waf_type": "None",
                         "size": stats.st_size,
                         "modified": stats.st_mtime,
-                        "hash": file_hash,
-                        "file_path": relative_file_path
+                        "hash": file_hash
                     }
         
         return index
@@ -197,7 +130,7 @@ class DocumentIndexManager:
         if os.path.exists(self.index_file):
             try:
                 with open(self.index_file, 'r') as f:
-                    return self._normalize_loaded_index(json.load(f))
+                    return json.load(f)
             except Exception as e:
                 print(f"Warning: Failed to load index: {str(e)}")
         return {}
@@ -206,7 +139,7 @@ class DocumentIndexManager:
         """Save index to disk"""
         try:
             with open(self.index_file, 'w') as f:
-                json.dump(self._normalize_loaded_index(index), f, indent=2)
+                json.dump(index, f, indent=2)
         except Exception as e:
             print(f"Warning: Failed to save index: {str(e)}")
     
@@ -225,20 +158,19 @@ class DocumentIndexManager:
         if not old_index:
             return True, "No previous index found"
         
-        new_index_keys = set(new_index.keys())
-        old_index_keys = set(old_index.keys())
-        added = new_index_keys - old_index_keys
+        added = set(new_index.keys()) - set(old_index.keys())
         if added:
             return True, f"Added {len(added)} new file(s)"
         
-        removed = old_index_keys - new_index_keys
+        removed = set(old_index.keys()) - set(new_index.keys())
         if removed:
             return True, f"Removed {len(removed)} file(s)"
         
         modified = []
-        for filepath in new_index_keys & old_index_keys:
-            if new_index[filepath]["hash"] != old_index[filepath]["hash"]:
-                modified.append(filepath)
+        for filepath in new_index.keys():
+            if filepath in old_index:
+                if new_index[filepath]["hash"] != old_index[filepath]["hash"]:
+                    modified.append(filepath)
         
         if modified:
             return True, f"Modified {len(modified)} file(s)"
@@ -269,15 +201,12 @@ class RAGDefenseService:
             force_rebuild: Force rebuild vector store
         """
         self.enable_rag = enable_rag
-        self.repo_root = REPO_ROOT
-        self.docs_folder = _resolve_repo_path(docs_folder)
-        self.docs_folder_relative = _to_repo_relative(self.docs_folder)
+        self.docs_folder = docs_folder
         self.vector_store_path = vector_store_path
-        self.vector_store_dir = _resolve_repo_path(vector_store_path)
         self.vector_store = None
         self.retriever = None
         self.reranker = None
-        self.index_manager = DocumentIndexManager(self.docs_folder, repo_root=self.repo_root)
+        self.index_manager = DocumentIndexManager(docs_folder)
         
         if self.enable_rag:
             self._initialize_rag(force_rebuild)
@@ -294,7 +223,7 @@ class RAGDefenseService:
                 needs_rebuild = True
                 reason = "Force rebuild"
             
-            if not needs_rebuild and os.path.exists(self.vector_store_dir):
+            if not needs_rebuild and os.path.exists(self.vector_store_path):
                 print(f"No changes detected - loading existing vector store...")
                 self._load_vector_store()
             else:
@@ -323,11 +252,10 @@ class RAGDefenseService:
             
             print("[2/4] Loading vector store from disk...")
             self.vector_store = FAISS.load_local(
-                self.vector_store_dir, 
+                self.vector_store_path, 
                 embeddings,
                 allow_dangerous_deserialization=True
             )
-            self._normalize_vector_store_metadata_paths()
             print("      Vector store loaded")
             
             print("[3/4] Setting up retriever...")
@@ -364,34 +292,15 @@ class RAGDefenseService:
         
         print(f"      Generating embeddings and building FAISS index... {embedding_kwargs}")
         self.vector_store = FAISS.from_documents(chunks, embeddings)
-        self._normalize_vector_store_metadata_paths()
         
         print("      Saving vector store to disk...")
-        os.makedirs(self.vector_store_dir, exist_ok=True)
-        self.vector_store.save_local(self.vector_store_dir)
+        os.makedirs(self.vector_store_path, exist_ok=True)
+        self.vector_store.save_local(self.vector_store_path)
         
         self.index_manager.save_current_index()
         print("      Vector store ready and saved")
         
         self.retriever = self.vector_store.as_retriever(search_kwargs={"k": 10})
-
-    def _normalize_vector_store_metadata_paths(self):
-        """Normalize persisted document metadata paths to repo-relative values."""
-        if self.vector_store is None:
-            return
-
-        docstore = getattr(self.vector_store, "docstore", None)
-        documents = getattr(docstore, "_dict", None)
-        if not isinstance(documents, dict):
-            return
-
-        for document in documents.values():
-            metadata = getattr(document, "metadata", None)
-            if isinstance(metadata, dict) and metadata.get("file_path"):
-                metadata["file_path"] = _to_repo_relative(
-                    metadata["file_path"],
-                    anchor_relative=self.docs_folder_relative,
-                )
     
     def _load_documents(self) -> List[Document]:
         """Load documents from structured folders"""
@@ -445,7 +354,7 @@ class RAGDefenseService:
                                     "data_type": data_type,
                                     "waf_type": waf_type,
                                     "file_type": file_type,
-                                    "file_path": _to_repo_relative(file_path, anchor_relative=self.docs_folder_relative)
+                                    "file_path": file_path
                                 }
                             
                             all_docs.extend(docs)
@@ -482,7 +391,7 @@ class RAGDefenseService:
                                 "data_type": data_type,
                                 "waf_type": "None",
                                 "file_type": file_type,
-                                "file_path": _to_repo_relative(file_path, anchor_relative=self.docs_folder_relative)
+                                "file_path": file_path
                             }
                         
                         all_docs.extend(docs)
