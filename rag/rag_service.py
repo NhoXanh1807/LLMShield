@@ -1619,7 +1619,6 @@ def get_relevant_context(
     return get_rag_service().get_relevant_context(
         attack_type=attack_type,
         waf_name=waf_name,
-        bypassed_payloads=bypassed_payloads,
         initial_k=initial_k,
         final_k=final_k,
         filter_rules_only=filter_rules_only,
