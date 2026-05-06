@@ -252,9 +252,6 @@ def rag_retrieve(data: dict) -> str:
       the attack type from bypassed_payloads.
     """
     try:
-        # Import locally to avoid circular dependency during server startup.
-        from rag.rag_service import get_relevant_context
-
         attack_type = (
             data.get("attack_type")
             or data.get("detected_attack_type")
@@ -277,9 +274,10 @@ def rag_retrieve(data: dict) -> str:
         if isinstance(filter_rules_only, str):
             filter_rules_only = filter_rules_only.strip().lower() in ["yes", "y", "true", "1"]
 
-        result = get_relevant_context(
+        result = get_rag_service().get_relevant_context(
             attack_type=attack_type,
             waf_name=waf_name,
+            bypassed_payloads=bypassed_payloads,
             initial_k=initial_k,
             final_k=final_k,
             filter_rules_only=filter_rules_only
