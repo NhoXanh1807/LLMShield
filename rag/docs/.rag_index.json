@@ -1,0 +1,151 @@
+{
+  "__rag_config__": {
+    "index_version": "structure_aware_v2_pymupdf_pages_global_chunks",
+    "chunking_strategy": "structure_aware_v2",
+    "loader_preference": "PyMuPDFLoader_then_PyPDFLoader"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_actions_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_actions_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 45984,
+    "modified": 1778324369.0695233,
+    "hash": "62d963f875fc2a066b17bf7e6c5ad5a6"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_dashboard_config_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_dashboard_config_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 39231,
+    "modified": 1778324369.0695233,
+    "hash": "a8dca6e172c8a91ebdffcb056c4fe75d"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_expressions_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_expressions_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 54050,
+    "modified": 1778324369.0695233,
+    "hash": "d30a903a398b8e886d10705e22f22d24"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_field_references_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_field_references_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 53896,
+    "modified": 1778324369.0705235,
+    "hash": "e5bc0b5837474e77aa37b063fc319311"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_fields_overview_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_fields_overview_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 35821,
+    "modified": 1778324369.0705235,
+    "hash": "90657ec2b92e1f2d839bb4124d1d47e2"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_functions_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_functions_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 56574,
+    "modified": 1778324369.0715234,
+    "hash": "e0b8bb7f66527c3175858248e42a6a3f"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_operators_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_operators_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 51696,
+    "modified": 1778324369.0715234,
+    "hash": "3b067c1e81ea4a0dbd84c29884815d36"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Cloudflare/cloudflare_values_rag_optimized_knowledge_base.md": {
+    "filename": "cloudflare_values_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Cloudflare",
+    "size": 50618,
+    "modified": 1778324369.0715234,
+    "hash": "ae6476c726358d7257d93b032f16fd52"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/kemp_loadmaster_modsecurity_waf_rule_writing_rag_optimized_knowledge_base.md": {
+    "filename": "kemp_loadmaster_modsecurity_waf_rule_writing_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 48743,
+    "modified": 1778324369.0725234,
+    "hash": "8835b445c9ca8922cb417e230585e469"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/modsecurity_crs_941_xss_rules_rag_optimized_knowledge_base.md": {
+    "filename": "modsecurity_crs_941_xss_rules_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 62494,
+    "modified": 1778324369.0735233,
+    "hash": "4053ae1515d699b9814b8b336a1b4dec"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/modsecurity_crs_942_sqli_rules_rag_optimized_knowledge_base_final.md": {
+    "filename": "modsecurity_crs_942_sqli_rules_rag_optimized_knowledge_base_final.md",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 185567,
+    "modified": 1778324369.0735233,
+    "hash": "9d5c08a1ac9779b482aea0516b08f67c"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/ModSecurity/modsecurity_making_rules_rag_optimized_knowledge_base.md": {
+    "filename": "modsecurity_making_rules_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "ModSecurity",
+    "size": 50297,
+    "modified": 1778324369.0745234,
+    "hash": "0ac35d39532a9103d0fda5106d2713e3"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/AWS/aws_waf_rag_optimized_general_about_waf.md": {
+    "filename": "aws_waf_rag_optimized_general_about_waf.md",
+    "data_type": "Rules",
+    "waf_type": "AWS",
+    "size": 48051,
+    "modified": 1778324369.0685234,
+    "hash": "c3d26e0891fa9653c312121bcf8f0a48"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/AWS/aws_waf_rag_optimized_knowledge_base.md": {
+    "filename": "aws_waf_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "AWS",
+    "size": 34844,
+    "modified": 1778324369.0685234,
+    "hash": "089660cc064696c69f0d17d77001069d"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/naxsi_basic_configuration_rag_optimized_knowledge_base.md": {
+    "filename": "naxsi_basic_configuration_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 37538,
+    "modified": 1778324369.0745234,
+    "hash": "350d926db2944d90d61292f26eb00938"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/naxsi_directives_rag_optimized_knowledge_base.md": {
+    "filename": "naxsi_directives_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 39830,
+    "modified": 1778324369.0755234,
+    "hash": "6f95bf4e74b6a447cc37b8137b0cb41c"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/naxsi_internal_rules_rag_optimized_knowledge_base.md": {
+    "filename": "naxsi_internal_rules_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 44839,
+    "modified": 1778324369.0755234,
+    "hash": "abb2f3db7ed0bec1856ec5addaecda3c"
+  },
+  "/workspace/LLMShield/rag/docs/Rules/Naxsi/naxsi_rules_rag_optimized_knowledge_base.md": {
+    "filename": "naxsi_rules_rag_optimized_knowledge_base.md",
+    "data_type": "Rules",
+    "waf_type": "Naxsi",
+    "size": 41686,
+    "modified": 1778324369.0755234,
+    "hash": "edb919620e1fd7e148522f5da53d6961"
+  }
+}
