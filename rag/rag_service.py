@@ -5,7 +5,7 @@ This version is optimized for WAF rule-authoring documents:
 - preserves procedural steps, syntax blocks, rule snippets, tables, and JSON examples
 - keeps global chunk ids per source file, including PDF page metadata
 - expands neighbor chunks from the FAISS docstore
-- receives attack_type directly from caller and only normalizes it; payload guessing is fallback-only
+- receives project attack_type directly from caller and enriches it into subtype-aware retrieval terms
 """
 
 import os
@@ -28,6 +28,104 @@ import torch
 
 
 RAG_INDEX_VERSION = "structure_aware_v2_pymupdf_pages_global_chunks"
+
+PROJECT_ATTACK_PROFILES = {
+    "xss_dom": {
+        "family": "XSS",
+        "display": "XSS DOM",
+        "aliases": [
+            "DOM XSS",
+            "DOM-based XSS",
+            "client-side XSS",
+            "JavaScript DOM sink",
+            "DOM source",
+            "DOM sink",
+            "location.hash",
+            "location.search",
+            "document.location",
+            "document.URL",
+            "document.referrer",
+            "document.write",
+            "innerHTML",
+            "outerHTML",
+            "insertAdjacentHTML",
+            "eval",
+            "setTimeout",
+            "setInterval",
+            "javascript URL",
+        ],
+    },
+    "xss_reflected": {
+        "family": "XSS",
+        "display": "Reflected XSS",
+        "aliases": [
+            "reflected cross-site scripting",
+            "reflected XSS",
+            "non-persistent XSS",
+            "query parameter XSS",
+            "URL parameter XSS",
+            "request parameter XSS",
+            "script tag",
+            "event handler",
+            "onerror",
+            "onload",
+            "HTML entity decode",
+            "URL decode",
+        ],
+    },
+    "xss_stored": {
+        "family": "XSS",
+        "display": "Stored XSS",
+        "aliases": [
+            "stored cross-site scripting",
+            "stored XSS",
+            "persistent XSS",
+            "persistent cross-site scripting",
+            "stored payload",
+            "comment field XSS",
+            "profile field XSS",
+            "message body XSS",
+            "form body XSS",
+            "rich text field",
+            "HTML input stored",
+        ],
+    },
+    "sql_injection": {
+        "family": "SQLI",
+        "display": "SQL Injection",
+        "aliases": [
+            "SQL injection",
+            "SQLi",
+            "classic SQL injection",
+            "union select",
+            "UNION-based SQL injection",
+            "tautology",
+            "or 1=1",
+            "stacked query",
+            "information_schema",
+            "SQL comment",
+            "database injection",
+        ],
+    },
+    "sql_injection_blind": {
+        "family": "SQLI",
+        "display": "Blind SQL Injection",
+        "aliases": [
+            "blind SQL injection",
+            "blind SQLi",
+            "time-based SQL injection",
+            "boolean-based SQL injection",
+            "time based blind SQLi",
+            "boolean based blind SQLi",
+            "sleep",
+            "benchmark",
+            "waitfor delay",
+            "conditional SQLi",
+            "inference SQL injection",
+        ],
+    },
+}
+
 
 
 class CrossEncoderReranker:
@@ -1044,53 +1142,71 @@ class RAGDefenseService:
     # Retrieval helpers
     # ---------------------------------------------------------------------
 
-    def _normalize_attack_type(self, attack_type: Optional[str]) -> str:
+    def _get_attack_profile(self, attack_type: Optional[str]) -> Dict[str, Any]:
         """
-        Normalize attack type provided by caller.
-        This does not infer from payloads; it only maps known labels from main.py/UI.
+        Validate and enrich the exact project attack type.
+
+        LLM4WAF sends one of the five project labels:
+        - xss_dom
+        - xss_reflected
+        - xss_stored
+        - sql_injection
+        - sql_injection_blind
+
+        This function does not collapse subtype labels into generic XSS/SQLI.
+        It enriches the raw label into display/family/aliases for retrieval.
         """
-        if not attack_type:
-            return "Unknown"
+        raw = str(attack_type or "").strip().lower().replace("-", "_").replace(" ", "_")
 
-        s = str(attack_type).strip().lower()
-        s = s.replace("-", "_").replace(" ", "_")
+        if raw not in PROJECT_ATTACK_PROFILES:
+            raise ValueError(
+                f"Unsupported attack_type={attack_type!r}. "
+                f"Expected one of {sorted(PROJECT_ATTACK_PROFILES.keys())}."
+            )
 
-        if "xss" in s or "cross_site" in s or "cross-site" in s:
-            return "XSS"
-        if "sqli" in s or "sql_injection" in s or "sqlinjection" in s or s == "sql":
-            return "SQLI"
-        if "lfi" in s or "local_file" in s:
-            return "LFI"
-        if "rfi" in s or "remote_file" in s:
-            return "RFI"
-        if "ssrf" in s:
-            return "SSRF"
-        if "rce" in s or "command_injection" in s or "cmdi" in s:
-            return "RCE"
-
-        return str(attack_type).strip() or "Unknown"
+        profile = dict(PROJECT_ATTACK_PROFILES[raw])
+        profile["raw"] = raw
+        return profile
 
     def _attack_terms(self, attack_type: str) -> List[str]:
-        t = self._normalize_attack_type(attack_type)
-        if t == "XSS":
-            return ["XSS", "cross-site scripting", "script", "onerror", "onload", "javascript", "xss match statement"]
-        if t == "SQLI":
-            return ["SQL injection", "SQLi", "union select", "sqli match statement", "database"]
-        if t == "SSRF":
-            return ["SSRF", "server-side request forgery", "metadata", "169.254.169.254"]
-        return [t]
+        """
+        Return subtype-aware terms for retrieval and usefulness scoring.
 
-    def _extract_payload_signals(self, payloads: list, max_signals: int = 10) -> List[str]:
-        """Extract high-value lexical signals from payloads for query expansion."""
+        Example:
+            xss_dom -> xss_dom, XSS DOM, XSS, DOM XSS, DOM-based XSS, ...
+            sql_injection_blind -> sql_injection_blind, Blind SQL Injection, SQLI, time-based SQL injection, ...
+        """
+        profile = self._get_attack_profile(attack_type)
+        return [
+            profile["raw"],
+            profile["display"],
+            profile["family"],
+            *profile["aliases"],
+        ]
+
+    def _extract_payload_signals(self, payloads: list, max_signals: int = 12) -> List[str]:
+        """Extract high-value lexical signals from bypassed payloads for query expansion."""
         text = " ".join(str(p) for p in payloads).lower()
 
         candidates = [
-            "script", "alert", "onerror", "onload", "onclick", "iframe", "svg",
-            "img", "src", "href", "javascript:", "data:", "document.cookie",
-            "eval", "fromcharcode", "settimeout",
-            "union", "select", "sleep", "benchmark", "or 1=1", "information_schema",
-            "../", "..\\", "%3c", "%3e", "%27", "%22", "url_encode",
-            "double_url", "whitespace", "case_random",
+            # XSS / DOM XSS signals.
+            "script", "<script", "</script", "alert", "confirm", "prompt",
+            "onerror", "onload", "onclick", "onmouseover", "onfocus",
+            "iframe", "svg", "img", "src", "href", "javascript:",
+            "data:", "document.cookie", "document.write", "document.location",
+            "document.url", "document.referrer", "location.hash", "location.search",
+            "innerhtml", "outerhtml", "insertadjacenthtml", "eval",
+            "fromcharcode", "settimeout", "setinterval",
+
+            # SQLi / blind SQLi signals.
+            "union", "select", "sleep", "benchmark", "waitfor", "delay",
+            "or 1=1", "and 1=1", "information_schema", "substring", "substr",
+            "ascii", "database()", "user()", "@@version", "--", "#", "/*",
+
+            # Encoding / bypass signals.
+            "../", "..\\", "%3c", "%3e", "%27", "%22", "%00",
+            "url_encode", "double_url", "double_url_encode",
+            "whitespace", "case_random", "html_entity",
         ]
 
         found = []
@@ -1098,57 +1214,94 @@ class RAGDefenseService:
             if c in text and c not in found:
                 found.append(c)
 
-        extra = re.findall(r"[a-zA-Z_]{4,}|\%\w{2}", text)
+        extra = re.findall(r"[a-zA-Z_][a-zA-Z0-9_]{3,}|\%\w{2}", text)
         for token in extra:
+            token = token.lower()
             if token not in found and len(found) < max_signals:
                 found.append(token)
 
         return found[:max_signals]
 
     def _generate_query_variants(self, attack_type: str, waf_name: Optional[str], bypassed_payloads: list) -> List[str]:
-        """Generate retrieval queries optimized for rule-authoring evidence."""
+        """Generate retrieval queries optimized for exact attack subtype and rule-authoring evidence."""
         waf = waf_name or "WAF"
-        normalized_attack = self._normalize_attack_type(attack_type)
-        attack_terms = " ".join(self._attack_terms(normalized_attack)[:3])
+        profile = self._get_attack_profile(attack_type)
+
+        raw_attack = profile["raw"]
+        family = profile["family"]
+        display = profile["display"]
+        aliases = profile["aliases"]
+
+        alias_head = " ".join(aliases[:6])
         signals = self._extract_payload_signals(bypassed_payloads)
-        signal_str = " ".join(signals[:6]) if signals else attack_terms
+        signal_str = " ".join(signals[:8]) if signals else alias_head
 
         queries = [
-            f"{waf} {normalized_attack} rule syntax statement example fields action transformation",
-            f"{waf} {attack_terms} detection rule example request component text transformation",
-            f"{waf} rule detect {signal_str}",
-            f"{normalized_attack} bypass normalization decoding canonicalization lowercase url decode html entity rule",
-            f"{waf} inspect query string body headers cookies uri {normalized_attack} rule statement",
+            f"{waf} {display} {raw_attack} rule syntax statement example fields action transformation",
+            f"{waf} {display} {alias_head} detection rule example request component text transformation",
+            f"{waf} {family} rule detect {signal_str}",
+            f"{display} {raw_attack} bypass normalization decoding canonicalization lowercase url decode html entity rule",
+            f"{waf} inspect query string body headers cookies uri {display} {raw_attack} rule statement",
         ]
 
+        if raw_attack == "xss_dom":
+            queries.extend([
+                f"{waf} DOM XSS rule detect client side source sink location hash document write innerHTML javascript",
+                f"{waf} DOM-based XSS client-side JavaScript sink source rule example",
+            ])
+
+        elif raw_attack == "xss_reflected":
+            queries.extend([
+                f"{waf} reflected XSS rule query parameter URL parameter script tag onerror html entity decode",
+                f"{waf} reflected cross-site scripting request arguments query string body headers rule example",
+            ])
+
+        elif raw_attack == "xss_stored":
+            queries.extend([
+                f"{waf} stored XSS persistent XSS form body comment profile field rule example",
+                f"{waf} stored cross-site scripting payload request body arguments HTML input rule syntax",
+            ])
+
+        elif raw_attack == "sql_injection":
+            queries.extend([
+                f"{waf} SQL injection union select tautology or 1=1 SQL comment rule example",
+                f"{waf} SQLi request arguments body query parameter database injection rule syntax",
+            ])
+
+        elif raw_attack == "sql_injection_blind":
+            queries.extend([
+                f"{waf} blind SQL injection time based sleep benchmark waitfor delay rule example",
+                f"{waf} boolean based blind SQLi conditional SQL injection request parameter rule syntax",
+            ])
+
         if waf == "AWS":
-            if normalized_attack == "XSS":
+            if family == "XSS":
                 queries.extend([
-                    "AWS WAF XSS match statement FieldToMatch TextTransformations JSON example",
+                    f"AWS WAF XSS match statement {display} FieldToMatch TextTransformations JSON example",
                     "AWS WAF Contains XSS injection attacks custom rule request components",
                 ])
-            elif normalized_attack == "SQLI":
+            elif family == "SQLI":
                 queries.extend([
-                    "AWS WAF SQL injection match statement FieldToMatch TextTransformations JSON example",
+                    f"AWS WAF SQL injection match statement {display} FieldToMatch TextTransformations JSON example",
                     "AWS WAF Contains SQL injection attacks custom rule request components",
                 ])
             queries.append("AWS WAF regex match statement text transformations field to match")
 
         if waf == "Cloudflare":
             queries.extend([
-                f"Cloudflare Ruleset Engine expression {normalized_attack} http.request.uri.query body contains matches",
+                f"Cloudflare Ruleset Engine expression {display} http.request.uri.query body contains matches",
                 "Cloudflare custom rule expression fields operators functions lower matches contains",
             ])
 
         if waf == "ModSecurity":
             queries.extend([
-                f"ModSecurity SecRule {normalized_attack} variables operators transformations actions example",
+                f"ModSecurity SecRule {display} {family} variables operators transformations actions example",
                 "OWASP CRS XSS SQL injection SecRule ARGS REQUEST_BODY REQUEST_HEADERS",
             ])
 
         if waf == "Naxsi":
             queries.extend([
-                f"Naxsi MainRule BasicRule {normalized_attack} mz ARGS URL BODY score CheckRule example",
+                f"Naxsi MainRule BasicRule {display} {family} mz ARGS URL BODY score CheckRule example",
                 "Naxsi rule syntax MainRule BasicRule str rx mz msg score",
             ])
 
@@ -1369,13 +1522,17 @@ Useful excerpt:
             return result
 
         try:
-            normalized_attack_type = self._normalize_attack_type(attack_type)
+            attack_profile = self._get_attack_profile(attack_type)
+            attack_type_raw = attack_profile["raw"]
             mapped_waf_name = self._extract_waf_name(waf_name)
             payload_signals = self._extract_payload_signals(bypassed_payloads)
-            queries = self._generate_query_variants(normalized_attack_type, mapped_waf_name, bypassed_payloads)
+            queries = self._generate_query_variants(attack_type_raw, mapped_waf_name, bypassed_payloads)
 
             result["attack_type_input"] = attack_type
-            result["normalized_attack_type"] = normalized_attack_type
+            result["attack_type_raw"] = attack_type_raw
+            result["attack_type_display"] = attack_profile["display"]
+            result["attack_type_family"] = attack_profile["family"]
+            result["attack_terms"] = self._attack_terms(attack_type_raw)
             result["num_queries"] = len(queries)
             result["queries"] = queries
 
@@ -1415,7 +1572,7 @@ Useful excerpt:
             # Do not hard-truncate to final_k here. Keep enough candidates for rerank.
             scored_docs = []
             for doc in all_retrieved_docs:
-                utility_score = self._score_rule_usefulness(doc, mapped_waf_name, normalized_attack_type, payload_signals)
+                utility_score = self._score_rule_usefulness(doc, mapped_waf_name, attack_type_raw, payload_signals)
                 scored_docs.append((doc, utility_score))
 
             scored_docs.sort(key=lambda x: x[1], reverse=True)
@@ -1484,14 +1641,18 @@ Useful excerpt:
             return result
 
     def _detect_attack_type(self, payloads: list) -> str:
-        """Fallback detector only. Prefer caller-provided attack_type."""
-        payload_str = " ".join(str(p) for p in payloads).lower()
+        """
+        Disabled for the current LLM4WAF integration.
 
-        if any(keyword in payload_str for keyword in ["script", "onerror", "onload", "alert", "xss", "svg", "iframe"]):
-            return "XSS"
-        if any(keyword in payload_str for keyword in ["union", "select", "or 1=1", "' or", '" or', "sql", "sleep", "benchmark"]):
-            return "SQLI"
-        return "Unknown"
+        The current project contract requires LLM4WAF to send one exact attack_type:
+        xss_dom, xss_reflected, xss_stored, sql_injection, or sql_injection_blind.
+
+        RAG should enrich that label, not infer it from payload text.
+        """
+        raise ValueError(
+            "Payload-based attack type detection is disabled. "
+            f"Pass one of {sorted(PROJECT_ATTACK_PROFILES.keys())} as attack_type."
+        )
 
     def force_rebuild(self):
         """Force rebuild vector store."""

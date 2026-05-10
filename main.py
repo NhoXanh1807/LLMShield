@@ -219,6 +219,46 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
+VALID_ATTACK_TYPES = {
+    "xss_dom",
+    "xss_reflected",
+    "xss_stored",
+    "sql_injection",
+    "sql_injection_blind",
+}
+
+
+def _json_response(payload: dict) -> str:
+    return json.dumps(payload, indent=4, ensure_ascii=False)
+
+
+def _parse_bool(value, default: bool = True) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"yes", "y", "true", "1"}
+    return bool(value)
+
+
+def _parse_int(value, default: int) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def _extract_project_attack_type(data: dict) -> str:
+    attack_type = str(data.get("attack_type", "")).strip().lower().replace("-", "_").replace(" ", "_")
+    if attack_type not in VALID_ATTACK_TYPES:
+        raise ValueError(
+            "attack_type is required for rag_retrieve and must be one of "
+            f"{sorted(VALID_ATTACK_TYPES)}. Got {attack_type!r}."
+        )
+    return attack_type
+
+
 
 def generate_response(model: AttackLLMInterface, data: dict) -> str:
     prompt = data.get("prompt", None)
@@ -246,33 +286,25 @@ def rag_retrieve(data: dict) -> str:
     """
     Retrieve RAG references for defense rule generation.
 
-    Important:
-    - attack_type is required and is passed directly into RAG.
-    - RAG normalizes labels like xss_reflected -> XSS, but no longer has to infer
-      the attack type from bypassed_payloads.
+    Contract:
+    - LLM4WAF sends attack_type exactly as one of:
+      xss_dom, xss_reflected, xss_stored, sql_injection, sql_injection_blind.
+    - LLMShield validates this label and passes it unchanged into rag_service.
+    - rag_service enriches the label into subtype-aware retrieval terms.
     """
     try:
-        attack_type = (
-            data.get("attack_type")
-            or data.get("detected_attack_type")
-            or data.get("attack")
-            or ""
-        )
-        if not str(attack_type).strip():
-            return json.dumps({
-                "type": "error",
-                "message": "attack_type is required for rag_retrieve. Pass it directly from the pipeline, for example: xss_reflected, sqli, XSS, or SQLI."
-            }, indent=4, ensure_ascii=False)
-
+        attack_type = _extract_project_attack_type(data)
         waf_name = data.get("waf_name", "")
         bypassed_payloads = data.get("bypassed_payloads", [])
-        initial_k = int(data.get("initial_k", 16))
-        final_k = int(data.get("final_k", 5))
-        filter_rules_only = data.get("filter_rules_only", True)
+        initial_k = _parse_int(data.get("initial_k"), 16)
+        final_k = _parse_int(data.get("final_k"), 5)
+        filter_rules_only = _parse_bool(data.get("filter_rules_only"), default=True)
 
-        # Support string booleans from query params.
-        if isinstance(filter_rules_only, str):
-            filter_rules_only = filter_rules_only.strip().lower() in ["yes", "y", "true", "1"]
+        print(
+            "[LLMShield RAG API] "
+            f"attack_type={attack_type!r}, waf_name={waf_name!r}, "
+            f"payload_count={len(bypassed_payloads) if isinstance(bypassed_payloads, list) else 'N/A'}"
+        )
 
         result = get_rag_service().get_relevant_context(
             attack_type=attack_type,
@@ -280,14 +312,17 @@ def rag_retrieve(data: dict) -> str:
             bypassed_payloads=bypassed_payloads,
             initial_k=initial_k,
             final_k=final_k,
-            filter_rules_only=filter_rules_only
+            filter_rules_only=filter_rules_only,
         )
-        return json.dumps(result, indent=4, ensure_ascii=False)
+        return _json_response(result)
+
     except Exception as e:
-        return json.dumps({
+        return _json_response({
             "type": "error",
-            "message": str(e)
-        }, indent=4, ensure_ascii=False)
+            "message": str(e),
+            "sources": [],
+            "queries": [],
+        })
 
 
 class LLMServer(BaseHTTPRequestHandler):
@@ -430,3 +465,4 @@ def main():
 
 
 main()
+
