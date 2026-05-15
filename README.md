@@ -1,12 +1,12 @@
 ﻿# LLMShield
 
-LLMShield là external service chuyên trách cho các tác vụ nặng của hệ thống LLM4WAF. Repo này tách riêng phần suy luận mô hình ngôn ngữ và truy hồi tri thức để LLM4WAF có thể tập trung vào orchestration của attack pipeline và defend pipeline. Trong kiến trúc hiện tại, LLMShield chịu trách nhiệm nạp model, quản lý adapter, khởi tạo RAG, và cung cấp HTTP API để các thành phần bên ngoài gọi đến một cách thống nhất.
+LLMShield is an external service dedicated to the heavy-compute tasks of the LLM4WAF system. This repository separates language model inference and knowledge retrieval from the main application so that LLM4WAF can focus on orchestrating the attack and defense pipelines. In the current architecture, LLMShield is responsible for loading models, managing adapters, initializing RAG, and exposing a unified HTTP API for external consumers.
 
-## Mở đầu, nói về mục tiêu của LLMShield đối với LLM4WAF
+## Introduction: LLMShield's Role in LLM4WAF
 
-Đối với LLM4WAF, LLMShield là lớp dịch vụ nền dùng để xử lý các tác vụ cần nhiều tài nguyên tính toán và có vòng đời vận hành độc lập. Cụ thể, LLMShield cung cấp môi trường phục vụ mô hình để sinh prompt, sinh payload tấn công, và truy hồi ngữ cảnh tài liệu phục vụ sinh rule phòng thủ. Cách tổ chức này giúp LLM4WAF không phải gánh phần load model, quản lý GPU, hay xây dựng vector store, đồng thời tạo điều kiện để nhóm phát triển nghiên cứu, huấn luyện, và tích hợp thêm model mới mà không phải thay đổi nhiều ở repo chính.
+Within LLM4WAF, LLMShield acts as a foundational service layer for tasks that require significant compute resources and an independent runtime lifecycle. Specifically, LLMShield provides the model-serving environment used to generate prompts, produce attack payloads, and retrieve document context for defensive rule generation. This separation allows LLM4WAF to avoid handling model loading, GPU management, and vector store construction directly, while also making it easier to research, train, and integrate new model versions without large changes in the main repository.
 
-## Trình bày cấu trúc source code dự án
+## Project Source Code Structure
 
 ```text
 LLMShield/
@@ -27,7 +27,7 @@ LLMShield/
 │       │   └── scripts/
 │       ├── simulator/
 │       │   └── model.py
-│       └── ...(thêm model mới)...
+│       └── ...(new model versions)...
 ├── rag/
 │   ├── rag_service.py
 │   ├── docs/
@@ -35,28 +35,28 @@ LLMShield/
 └── test/
 ```
 
-- `main.py`: entry point của service. File này khởi tạo model, khởi tạo RAG service, mở HTTP server và public service qua ngrok.
-- `config.py`: nơi khai báo cấu hình runtime và bảng đăng ký `MODEL_LOADERS` để ánh xạ tên model sang implementation tương ứng.
-- `llm/interfaces.py`: định nghĩa interface chuẩn `AttackLLMInterface` mà mọi model mới phải tuân theo.
-- `llm/model_versions/`: nơi chứa từng phiên bản model theo dạng tách biệt. Mỗi model có thể đi kèm code inference, adapters, scripts huấn luyện, scripts đánh giá, và tài nguyên phục vụ nghiên cứu.
-- `rag/rag_service.py`: nơi hiện thực toàn bộ logic RAG, bao gồm indexing tài liệu, vector store, retrieval và reranking.
-- `rag/docs/`: tập tài liệu nguồn cho RAG như rule docs, guideline và tri thức liên quan đến các WAF.
-- `rag/vector_store/`: nơi lưu FAISS index đã build để tái sử dụng khi khởi động lại service.
-- `test/`: các script kiểm tra nhanh hoặc test integration cho từng chức năng của service.
+- `main.py`: the service entry point. It initializes the model, initializes the RAG service, starts the HTTP server, and exposes the service through ngrok.
+- `config.py`: holds runtime configuration and the `MODEL_LOADERS` registry that maps model names to their concrete implementations.
+- `llm/interfaces.py`: defines the standard `AttackLLMInterface` that every new model implementation must follow.
+- `llm/model_versions/`: stores each model version in an isolated structure. A model version can include inference code, adapters, training scripts, evaluation scripts, and research assets.
+- `rag/rag_service.py`: implements all RAG-related logic, including document indexing, vector store management, retrieval, and reranking.
+- `rag/docs/`: contains source materials for RAG, such as rule documentation, guidelines, and WAF-related knowledge.
+- `rag/vector_store/`: stores the built FAISS index for reuse across service restarts.
+- `test/`: contains quick test scripts or integration checks for individual service capabilities.
 
-## Quy chuẩn phát triển dự án
+## Project Development Conventions
 
-Mục tiêu của cách tổ chức hiện tại là giữ cho transport layer, model layer và RAG layer tách biệt. Khi phát triển thêm tính năng, cần ưu tiên mở rộng đúng lớp chức năng thay vì sửa lan sang nhiều nơi.
+The purpose of the current layout is to keep the transport layer, model layer, and RAG layer separate. When adding new functionality, changes should be made in the appropriate layer instead of spreading logic across unrelated parts of the codebase.
 
-### Nghiên cứu, phát triển, huấn luyện, tích hợp thêm model mới
+### Research, Development, Training, and Integration of New Models
 
-Khi thêm model mới, cần tạo thư mục riêng trong `llm/model_versions/` theo đúng format hiện tại để giữ mọi thứ liên quan đến model nằm cùng một chỗ:
+When adding a new model, create a dedicated directory under `llm/model_versions/` using the existing format so that all model-related assets remain colocated:
 
-- `model.py`: code implement model runtime
-- `adapters/`: các adapter hoặc checkpoint phục vụ inference
-- `scripts/`: script huấn luyện, chuẩn bị dữ liệu, đánh giá, hoặc thực nghiệm
+- `model.py`: model runtime implementation
+- `adapters/`: adapters or checkpoints used for inference
+- `scripts/`: scripts for training, data preparation, evaluation, or experimentation
 
-Model mới phải implement interface chuẩn trong `llm/interfaces.py`:
+Every new model must implement the standard interface defined in `llm/interfaces.py`:
 
 ```python
 from llm.interfaces import AttackLLMInterface
@@ -81,7 +81,7 @@ class NewModel(AttackLLMInterface):
         ...
 ```
 
-Sau đó import model mới và khai báo loader trong `config.py`:
+Then import the new model and register its loader in `config.py`:
 
 ```python
 from llm.model_versions.simulator.model import SimulateModel
@@ -100,44 +100,44 @@ class Config:
     }
 ```
 
-Quy chuẩn cần giữ:
+The following conventions should be preserved:
 
-- không sửa contract của `AttackLLMInterface` nếu chưa thật sự cần thiết
-- tên adapter phải ổn định để client bên ngoài có thể gọi đúng `adapter_name`
-- logic đặc thù của từng model phải nằm trong thư mục model đó, không đẩy sang `main.py`
-- tài nguyên phục vụ huấn luyện và nghiên cứu để trong `scripts/`, từng versions adapters sau khi huấn luyện phải để trong `adapters/`, không đặt lẫn ở thư mục gốc
+- do not change the `AttackLLMInterface` contract unless it is absolutely necessary
+- adapter names must remain stable so that external clients can call the correct `adapter_name`
+- model-specific logic must stay inside that model's directory and should not be pushed into `main.py`
+- training and research assets must stay in `scripts/`, and trained adapter versions must be stored in `adapters/`, not mixed into the repository root
 
-### Cập nhật, chỉnh sửa RAG
+### Updating or Modifying RAG
 
-Mọi thay đổi liên quan đến RAG cần được thực hiện trong thư mục `rag`. Điều này bao gồm:
+All RAG-related changes must be implemented inside the `rag` directory. This includes:
 
-- cập nhật tài liệu nguồn trong `rag/docs/`
-- chỉnh sửa logic indexing, retrieval, reranking trong `rag/rag_service.py`
-- cập nhật hoặc rebuild vector store trong `rag/vector_store/`
+- updating source materials in `rag/docs/`
+- modifying indexing, retrieval, and reranking logic in `rag/rag_service.py`
+- updating or rebuilding the vector store in `rag/vector_store/`
 
-Khi chỉnh sửa RAG, cần đảm bảo đầu ra của action `rag_retrieve` vẫn giữ được contract mà repo ngoài đang sử dụng, đặc biệt là cấu trúc JSON response.
+When updating RAG, ensure that the output contract of the `rag_retrieve` action remains compatible with external repositories, especially the JSON response structure.
 
-## Chức năng mà LLMShield cung cấp
+## Capabilities Provided by LLMShield
 
-LLMShield hiện cung cấp một tập chức năng phục vụ hai nhóm nghiệp vụ chính: sinh nội dung bằng LLM và truy hồi ngữ cảnh tài liệu bằng RAG. Các chức năng này được expose qua HTTP API để LLM4WAF hoặc các repo khác có thể gọi đến theo cùng một cách thống nhất.
+LLMShield currently provides a set of capabilities that support two main categories of work: LLM-based generation and RAG-based document context retrieval. These capabilities are exposed over HTTP so that LLM4WAF and other repositories can invoke them in a unified way.
 
-Service hiện tại dùng chung một endpoint HTTP và phân biệt chức năng bằng tham số `action`.
+The current service uses a shared HTTP endpoint and distinguishes capabilities through the `action` parameter.
 
 - Method: `POST`
-- Base endpoint local mặc định: `http://127.0.0.1:89`
-- Public endpoint: URL được ngrok in ra khi service khởi động
-- `action` có thể được truyền trong query string hoặc JSON body
-- Nếu cùng một key xuất hiện ở cả query string và JSON body thì giá trị trong JSON body sẽ được ưu tiên
+- Default local base endpoint: `http://127.0.0.1:89`
+- Public endpoint: the ngrok URL printed when the service starts
+- `action` can be passed in the query string or in the JSON body
+- If the same key appears in both the query string and the JSON body, the value from the JSON body takes precedence
 
-Ví dụ format gọi chung:
+Common request format:
 
 ```text
-POST /?action=<ten_action>
+POST /?action=<action_name>
 ```
 
-### API `generate`
+### `generate` API
 
-Chức năng này nhận một prompt hoàn chỉnh và gọi trực tiếp vào model đang được nạp để sinh text đầu ra.
+This capability accepts a fully prepared prompt and calls the currently loaded model directly to generate text output.
 
 Request body:
 
@@ -150,23 +150,23 @@ Request body:
 }
 ```
 
-Các trường chính:
+Main fields:
 
-- `prompt`: bắt buộc
-- `max_new_tokens`: tùy chọn, mặc định `128`
-- `temperature`: tùy chọn, mặc định `0.7`
-- `adapter_name`: tùy chọn, dùng để chọn adapter tương ứng với model hiện tại
+- `prompt`: required
+- `max_new_tokens`: optional, default `128`
+- `temperature`: optional, default `0.7`
+- `adapter_name`: optional, used to select the appropriate adapter for the current model
 
 Response:
 
-- kiểu dữ liệu: plain text
-- nội dung: chuỗi do model sinh ra
+- data type: plain text
+- content: the string generated by the model
 
-### API `build_prompt`
+### `build_prompt` API
 
-Chức năng này dùng logic nội bộ của model để tạo prompt phù hợp với bài toán đang xử lý. Contract request phụ thuộc vào implementation của model đang được nạp.
+This capability uses the model's internal logic to build a prompt suitable for the task being processed. The request contract depends on the implementation of the currently loaded model.
 
-Ví dụ request với `Gemma2_2B` ở phase sinh payload từ kỹ thuật:
+Example request for `Gemma2_2B` in the payload-generation phase from a technique:
 
 ```json
 {
@@ -176,7 +176,7 @@ Ví dụ request với `Gemma2_2B` ở phase sinh payload từ kỹ thuật:
 }
 ```
 
-Ví dụ request với dữ liệu phase 3:
+Example request with phase-3 data:
 
 ```json
 {
@@ -194,14 +194,14 @@ Ví dụ request với dữ liệu phase 3:
 
 Response:
 
-- kiểu dữ liệu: plain text
-- nội dung: prompt đã được build
+- data type: plain text
+- content: the constructed prompt
 
-### API `generate_payload`
+### `generate_payload` API
 
-Chức năng này là lớp tiện ích ở mức cao hơn, dùng để build prompt và sinh payload trong cùng một request. Đây là action phù hợp nhất khi client bên ngoài muốn nhận payload đầu ra trực tiếp.
+This capability is a higher-level utility that builds the prompt and generates a payload within the same request. It is the most suitable action when an external client wants the final payload directly.
 
-Ví dụ request:
+Example request:
 
 ```json
 {
@@ -217,19 +217,19 @@ Ví dụ request:
 
 Response:
 
-- kiểu dữ liệu: plain text
-- nội dung: payload cuối cùng sau khi model xử lý xong
+- data type: plain text
+- content: the final payload after the model finishes processing
 
-Lưu ý:
+Notes:
 
-- với `Gemma2_2B`, đầu ra được làm sạch để bỏ code fence và chỉ giữ payload hợp lệ
-- với model khác, contract của `build_prompt()` có thể khác, nên khi đổi model cần kiểm tra lại client request format
+- with `Gemma2_2B`, the output is cleaned to remove code fences and keep only the valid payload
+- with other models, the `build_prompt()` contract may differ, so client request formats should be rechecked when switching models
 
-### API `rag_retrieve`
+### `rag_retrieve` API
 
-Chức năng này truy hồi ngữ cảnh tài liệu từ hệ RAG để phục vụ sinh rule phòng thủ ở LLM4WAF hoặc các hệ thống khác.
+This capability retrieves document context from the RAG system to support defensive rule generation in LLM4WAF or other systems.
 
-Ví dụ request:
+Example request:
 
 ```json
 {
@@ -245,28 +245,28 @@ Ví dụ request:
 }
 ```
 
-Các trường chính:
+Main fields:
 
-- `attack_type`: bắt buộc, phải là một trong các giá trị mà service hỗ trợ như `xss_dom`, `xss_reflected`, `xss_stored`, `sql_injection`, `sql_injection_blind`
-- `waf_name`: tên WAF đích
-- `bypassed_payloads`: danh sách payload dùng để enrich truy vấn retrieval
-- `initial_k`: số lượng candidate lấy ở bước retrieval đầu
-- `final_k`: số lượng kết quả cuối cùng sau rerank
-- `filter_rules_only`: chỉ lấy các nguồn phù hợp cho sinh rule nếu bật `true`
+- `attack_type`: required; must be one of the supported values such as `xss_dom`, `xss_reflected`, `xss_stored`, `sql_injection`, or `sql_injection_blind`
+- `waf_name`: target WAF name
+- `bypassed_payloads`: payload list used to enrich retrieval queries
+- `initial_k`: number of candidates retrieved in the first retrieval stage
+- `final_k`: number of final results after reranking
+- `filter_rules_only`: when `true`, limits the results to sources suitable for rule generation
 
 Response:
 
-- kiểu dữ liệu: JSON
-- nội dung chính gồm metadata truy hồi, danh sách `sources`, các `queries` đã sinh, và trường `context` dùng để feed tiếp cho tác vụ sinh rule
+- data type: JSON
+- main content: retrieval metadata, a `sources` list, the generated `queries`, and a `context` field intended for downstream rule generation
 
-## Hướng dẫn khởi chạy dự án
+## Project Startup Guide
 
-### Phần cứng yêu cầu
+### Required Hardware
 
-- Máy ảo (khuyến nghị web `Vast.ai`) hoặc máy cá nhân có GPU nhân CUDA.
-- Phiên bản cuda tối thiểu 12.8.
-- Kiến trúc GPU compute phù hợp : sm_75 -> sm_90
-- Các dòng phù hợp:
+- Virtual machine (recommended: `Vast.ai`) or a personal machine with an NVIDIA CUDA-capable GPU.
+- Minimum CUDA version: 12.8.
+- Supported GPU compute architecture: sm_75 -> sm_90
+- Suitable GPU families:
     - RTX 2000 series
     - RTX 3000 series
     - RTX 4000 series
@@ -275,46 +275,46 @@ Response:
     - NVIDIA A5000
     - NVIDIA A6000
 
-## Hướng dẫn chạy repo
+## How to Run the Repository
 
 ```sh
-# 1. Tải repo về máy
+# 1. Clone the repository
 git clone https://github.com/NhoXanh1807/LLMShield
 
 
-# 2. Vào thư mục của repo LLMShield
+# 2. Enter the LLMShield repository directory
 cd LLMShield
-# Tạo Virtual Enviroment
+# Create a virtual environment
 python -m venv .venv
 
 
-# 3. Kích hoạt VENV
+# 3. Activate the virtual environment
 # - Linux/MacOS
 source .venv/bin/activate
 # - Windows
 .venv/Scripts/activate
 
 
-# 4. Cập nhật pip mới
+# 4. Upgrade pip
 python -m pip install --upgrade pip
 
 
-# 5. Cài đặt thư viện
+# 5. Install dependencies
 pip install -r requirements.txt
 
 
-# 6. Chuẩn bị HF_TOKEN từ Huggingface
-# 7. Chạy dự án
 python main.py <HF_TOKEN> <MODEL_NAME> <ENABLE_RAG:y/n>
+# 6. Prepare the HF_TOKEN from Hugging Face
+# 7. Start the project
 
 
 >importing libraries...
 >Available models: ['FAKE', 'GEMMA_2B', 'QWEN_4B']
 >Enter model name: 
-# 8. Nhập tên model LLM để chạy : khuyến nghị GEMMA_2B
+# 8. Enter the LLM model name to run: GEMMA_2B is recommended
 
 
 >NGROK: 127.0.0.1:89 -> https://overrigged-savingly-nelle.ngrok-free.dev
 >Type 'exit' to stop server: 
-# 9. Hiện như vậy là service đã chạy rồi nhé, nếu muốn tắt có thể nhập 'exit'
+# 9. At this point the service is running. Enter 'exit' to stop it.
 ```
