@@ -305,7 +305,7 @@ pip install -r requirements.txt
 
 # 6. Chuẩn bị HF_TOKEN từ Huggingface
 # 7. Chạy dự án
-python main.py <HF_TOKEN>
+python main.py <HF_TOKEN> <MODEL_NAME> <ENABLE_RAG:y/n>
 
 
 >importing libraries...
